@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <title>Coloring App</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; user-select: none; }
+        body { background-color: #e5e5ea; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+        
+        /* Floating Toolbar UI */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 100; }
+        
+        #toolbar {
+            position: absolute; top: 20px; left: 20px; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px); padding: 15px; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 12px;
+            pointer-events: auto; transition: transform 0.3s ease;
+        }
+        
+        #toolbar.hidden { transform: translateX(-150%); }
+        
+        #toggle-ui {
+            position: absolute; top: 20px; left: 20px; width: 44px; height: 44px;
+            background: #fff; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex; justify-content: center; align-items: center; font-size: 20px;
+            pointer-events: auto; cursor: pointer; z-index: 99; border: none;
+        }
+
+        .tool-row { display: flex; gap: 8px; flex-wrap: wrap; max-width: 180px; }
+        
+        button { padding: 10px; border: none; border-radius: 10px; background: #f0f0f0; cursor: pointer; transition: 0.2s; font-size: 14px;}
+        button.active { background: #007aff; color: white; }
+        button:active { transform: scale(0.95); }
+        
+        input[type="color"] { border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; background: none; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 4px rgba(0,0,0,0.2); }
+        
+        input[type="range"] { width: 100%; }
+
+        /* Workspace and Canvases */
+        #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+        
+        #workspace {
+            position: absolute; top: 50%; left: 50%; width: 1200px; height: 1600px;
+            background: white; transform-origin: 0 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #topCanvas { pointer-events: none; mix-blend-mode: multiply; }
+    </style>
+</head>
+<body>
+
+    <button id="toggle-ui" onclick="toggleToolbar()">🎨</button>
+
+    <div id="ui-layer">
+        <div id="toolbar">
+            <div class="tool-row" style="justify-content: space-between; align-items: center;">
+                <input type="color" id="colorPicker" value="#ff3b30">
+                <button onclick="undo()">↩️</button>
+                <button onclick="redo()">↪️</button>
+            </div>
+            
+            <div class="tool-row">
+                <button class="tool-btn active" data-tool="pen">Pen</button>
+                <button class="tool-btn" data-tool="marker">Marker</button>
+                <button class="tool-btn" data-tool="brush">Brush</button>
+                <button class="tool-btn" data-tool="bucket">Bucket</button>
+                <button class="tool-btn" data-tool="eraser">Eraser</button>
+            </div>
+            
+            <input type="range" id="thicknessSlider" min="1" max="50" value="5">
+            
+            <div class="tool-row" style="margin-top: 10px;">
+                <input type="file" id="fileUpload" accept="image/jpeg, application/pdf" style="display: none;">
+                <button onclick="document.getElementById('fileUpload').click()">📁 Import</button>
+                <button onclick="saveArtwork()">💾 Save</button>
+                <button onclick="clearCanvas()" style="color: #ff3b30;">🗑️ Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewport">
+        <div id="workspace" style="transform: translate(-600px, -800px) scale(1);">
+            <canvas id="drawCanvas" width="1200" height="1600"></canvas>
+            <canvas id="topCanvas" width="1200" height="1600"></canvas>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const workspace = document.getElementById('workspace');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const drawCtx = drawCanvas.getContext('2d', { willReadFrequently: true });
+        const topCanvas = document.getElementById('topCanvas');
+        const topCtx = topCanvas.getContext('2d', { willReadFrequently: true });
+        
+        let currentTool = 'pen';
+        let currentColor = '#ff3b30';
+        let currentThickness = 5;
+
+        // --- UI Logic ---
+        function toggleToolbar() {
+            document.getElementById('toolbar').classList.toggle('hidden');
+        }
+
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentTool = e.target.dataset.tool;
+            });
+        });
+
+        document.getElementById('colorPicker').addEventListener('input', (e) => currentColor = e.target.value);
+        document.getElementById('thicknessSlider').addEventListener('input', (e) => currentThickness = e.target.value);
+
+        // --- Undo / Redo System ---
+        let undoStack = [];
+        let redoStack = [];
+
+        function saveState() {
+            undoStack.push(drawCanvas.toDataURL());
+            if (undoStack.length > 15) undoStack.shift(); // Keep memory usage low
+            redoStack = [];
+        }
+
+        function restoreState(imgDataUrl) {
+            const img = new Image();
+            img.onload = () => {
+                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                drawCtx.fillStyle = '#ffffff';
+                drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+                drawCtx.drawImage(img, 0, 0);
+            };
+            img.src = imgDataUrl;
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push(drawCanvas.toDataURL());
+                restoreState(undoStack.pop());
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                undoStack.push(drawCanvas.toDataURL());
+                restoreState(redoStack.pop());
+            }
+        }
+
+        // Initialize canvas background
+        drawCtx.fillStyle = '#ffffff';
+        drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+        saveState();
+
+        function clearCanvas() {
+            saveState();
+            drawCtx.fillStyle = '#ffffff';
+            drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+        }
+
+        // --- Pan and Zoom (Touch) & Drawing (Pencil/Mouse) ---
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+        
+        let scale = 1;
+        let panX = -600, panY = -800; // Centers the 1200x1600 canvas
+        let activeTouches = new Map();
+        let initialPinchDistance = null;
+        let initialScale = 1;
+
+        const viewport = document.getElementById('viewport');
+
+        function updateTransform() {
+            workspace.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        }
+        updateTransform();
+
+        // Get coordinates relative to the scaled canvas
+        function getCanvasCoords(e) {
+            const rect = workspace.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) / scale,
+                y: (e.clientY - rect.top) / scale
+            };
+        }
+
+        viewport.addEventListener('pointerdown', (e) => {
+            // Touch gestures for pan/zoom (Palm rejection - touch won't draw)
+            if (e.pointerType === 'touch') {
+                activeTouches.set(e.pointerId, e);
+                return;
+            }
+
+            // Pencil or Mouse for drawing
+            if (e.pointerType === 'pen' || (e.pointerType === 'mouse' && e.button === 0)) {
+                saveState();
+                const coords = getCanvasCoords(e);
+                
+                if (currentTool === 'bucket') {
+                    floodFill(Math.floor(coords.x), Math.floor(coords.y), currentColor);
+                    return;
+                }
+
+                isDrawing = true;
+                [lastX, lastY] = [coords.x, coords.y];
+                draw(coords);
+            }
+        });
+
+        viewport.addEventListener('pointermove', (e) => {
+            if (e.pointerType === 'touch' && activeTouches.has(e.pointerId)) {
+                activeTouches.set(e.pointerId, e);
+                const touches = Array.from(activeTouches.values());
+                
+                if (touches.length === 1) {
+                    // Panning
+                    panX += e.movementX;
+                    panY += e.movementY;
+                    updateTransform();
+                } else if (touches.length === 2) {
+                    // Pinch to Zoom
+                    const dx = touches[0].clientX - touches[1].clientX;
+                    const dy = touches[0].clientY - touches[1].clientY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (!initialPinchDistance) {
+                        initialPinchDistance = distance;
+                        initialScale = scale;
+                    } else {
+                        scale = Math.min(Math.max(0.5, initialScale * (distance / initialPinchDistance)), 5);
+                        updateTransform();
+                    }
+                }
+                return;
+            }
+
+            if (isDrawing) draw(getCanvasCoords(e));
+        });
+
+        viewport.addEventListener('pointerup', (e) => endPointer(e));
+        viewport.addEventListener('pointerout', (e) => endPointer(e));
+        viewport.addEventListener('pointercancel', (e) => endPointer(e));
+
+        function endPointer(e) {
+            if (e.pointerType === 'touch') {
+                activeTouches.delete(e.pointerId);
+                if (activeTouches.size < 2) initialPinchDistance = null;
+            } else {
+                isDrawing = false;
+            }
+        }
+
+        // --- Drawing Engine ---
+        function draw(coords) {
+            drawCtx.lineCap = 'round';
+            drawCtx.lineJoin = 'round';
+            drawCtx.lineWidth = currentThickness;
+
+            if (currentTool === 'eraser') {
+                drawCtx.globalCompositeOperation = 'source-over';
+                drawCtx.strokeStyle = '#ffffff';
+                drawCtx.globalAlpha = 1;
+                drawCtx.shadowBlur = 0;
+            } else {
+                drawCtx.globalCompositeOperation = 'source-over';
+                drawCtx.strokeStyle = currentColor;
+                
+                if (currentTool === 'pen') {
+                    drawCtx.globalAlpha = 1;
+                    drawCtx.shadowBlur = 0;
+                } else if (currentTool === 'marker') {
+                    drawCtx.globalAlpha = 0.3;
+                    drawCtx.shadowBlur = 0;
+                } else if (currentTool === 'brush') {
+                    drawCtx.globalAlpha = 0.8;
+                    drawCtx.shadowBlur = currentThickness;
+                    drawCtx.shadowColor = currentColor;
+                }
+            }
+
+            drawCtx.beginPath();
+            drawCtx.moveTo(lastX, lastY);
+            drawCtx.lineTo(coords.x, coords.y);
+            drawCtx.stroke();
+
+            [lastX, lastY] = [coords.x, coords.y];
+        }
+
+        // --- Hex to RGBA Helper for Bucket ---
+        function hexToRgba(hex) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return [r, g, b, 255];
+        }
+
+        function matchColor(data, pos, color) {
+            return data[pos] === color[0] && data[pos+1] === color[1] && data[pos+2] === color[2] && data[pos+3] === color[3];
+        }
+
+        // --- Flood Fill (Paint Bucket) ---
+        function floodFill(startX, startY, fillColorHex) {
+            const w = drawCanvas.width;
+            const h = drawCanvas.height;
+            if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
+
+            // Create a composite canvas to check both drawing and line art boundaries
+            const compCanvas = document.createElement('canvas');
+            compCanvas.width = w; compCanvas.height = h;
+            const compCtx = compCanvas.getContext('2d');
+            compCtx.drawImage(drawCanvas, 0, 0);
+            compCtx.globalCompositeOperation = 'multiply';
+            compCtx.drawImage(topCanvas, 0, 0);
+
+            const compData = compCtx.getImageData(0, 0, w, h).data;
+            const drawImgData = drawCtx.getImageData(0, 0, w, h);
+            const data = drawImgData.data;
+
+            const startPos = (startY * w + startX) * 4;
+            const startColor = [compData[startPos], compData[startPos+1], compData[startPos+2], compData[startPos+3]];
+            const fillColor = hexToRgba(fillColorHex);
+
+            // Don't fill if clicking on a black line or if already the same color
+            if (startColor[0] < 50 && startColor[1] < 50 && startColor[2] < 50) return; 
+            if (matchColor(data, startPos, fillColor)) return;
+
+            const pixelStack = [[startX, startY]];
+            
+            while(pixelStack.length) {
+                let newPos, x, y, pixelPos, reachLeft, reachRight;
+                newPos = pixelStack.pop();
+                x = newPos[0]; y = newPos[1];
+                pixelPos = (y * w + x) * 4;
+                
+                while(y-- >= 0 && matchColor(compData, pixelPos, startColor)) { pixelPos -= w * 4; }
+                pixelPos += w * 4; ++y;
+                
+                reachLeft = false; reachRight = false;
+                while(y++ < h - 1 && matchColor(compData, pixelPos, startColor)) {
+                    // Update actual drawing canvas
+                    data[pixelPos] = fillColor[0]; data[pixelPos+1] = fillColor[1]; 
+                    data[pixelPos+2] = fillColor[2]; data[pixelPos+3] = 255;
+                    // Update composite array to prevent infinite loops
+                    compData[pixelPos] = fillColor[0]; compData[pixelPos+1] = fillColor[1]; 
+                    compData[pixelPos+2] = fillColor[2]; compData[pixelPos+3] = 255;
+
+                    if (x > 0) {
+                        if (matchColor(compData, pixelPos - 4, startColor)) {
+                            if (!reachLeft) { pixelStack.push([x - 1, y]); reachLeft = true; }
+                        } else if (reachLeft) { reachLeft = false; }
+                    }
+                    if (x < w - 1) {
+                        if (matchColor(compData, pixelPos + 4, startColor)) {
+                            if (!reachRight) { pixelStack.push([x + 1, y]); reachRight = true; }
+                        } else if (reachRight) { reachRight = false; }
+                    }
+                    pixelPos += w * 4;
+                }
+            }
+            drawCtx.putImageData(drawImgData, 0, 0);
+        }
+
+        // --- Import & Export ---
+        document.getElementById('fileUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            saveState();
+            topCtx.clearRect(0, 0, topCanvas.width, topCanvas.height);
+
+            if (file.type === 'application/pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                const page = await pdf.getPage(1);
+                
+                const viewport = page.getViewport({ scale: 2 });
+                const renderContext = { canvasContext: topCtx, viewport: viewport,
+                    transform: [1, 0, 0, 1, (topCanvas.width - viewport.width) / 2, (topCanvas.height - viewport.height) / 2] };
+                await page.render(renderContext).promise;
+            } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                const img = new Image();
+                img.onload = () => topCtx.drawImage(img, (topCanvas.width - img.width) / 2, (topCanvas.height - img.height) / 2);
+                img.src = URL.createObjectURL(file);
+            }
+        });
+
+        function saveArtwork() {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = drawCanvas.width; exportCanvas.height = drawCanvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            exportCtx.fillStyle = '#ffffff';
+            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            exportCtx.drawImage(drawCanvas, 0, 0);
+            
+            exportCtx.globalCompositeOperation = 'multiply';
+            exportCtx.drawImage(topCanvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.download = 'Coloring-Page.png';
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
