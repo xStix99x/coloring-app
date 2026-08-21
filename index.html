@@ -74,7 +74,6 @@
         .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .thick-btn.active { background: #0a84ff; border-color: #0a84ff; }
         .thick-dot { background: #ffffff; border-radius: 50%; }
-        .thick-btn.active .thick-dot { background: #ffffff; }
 
         .slider-group { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #a1a1a6; }
         .slider-group label { display: flex; justify-content: space-between; }
@@ -102,8 +101,8 @@
                 <div class="color-header">
                     <span>Color</span>
                     <div>
-                        <button onclick="undo()" style="padding: 4px 8px; flex-basis: auto;">↩️</button>
-                        <button onclick="redo()" style="padding: 4px 8px; flex-basis: auto;">↪️</button>
+                        <!-- Redo removed to save massive amounts of RAM -->
+                        <button onclick="undo()" style="padding: 4px 12px; flex-basis: auto;" title="Undo">↩️ Undo</button>
                     </div>
                 </div>
                 <div class="color-inputs">
@@ -123,18 +122,18 @@
             
             <div class="slider-group">
                 <label><span>Thickness</span> <span id="valThick">5</span></label>
-                <!-- 8 Incremental Thickness Buttons Grid -->
+                <!-- 8 Thickness Buttons: 1, 5, 10, 20, 40, 60, 80, 100 -->
                 <div class="thickness-grid" id="thicknessGrid">
-                    <div class="thick-btn" data-size="2"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
-                    <div class="thick-btn" data-size="10"><div class="thick-dot" style="width:5px; height:5px;"></div></div>
-                    <div class="thick-btn" data-size="20"><div class="thick-dot" style="width:9px; height:9px;"></div></div>
-                    <div class="thick-btn" data-size="40"><div class="thick-dot" style="width:13px; height:13px;"></div></div>
-                    <div class="thick-btn" data-size="80"><div class="thick-dot" style="width:17px; height:17px;"></div></div>
-                    <div class="thick-btn" data-size="100"><div class="thick-dot" style="width:20px; height:20px;"></div></div>
-                    <div class="thick-btn" data-size="200"><div class="thick-dot" style="width:23px; height:23px;"></div></div>
-                    <div class="thick-btn" data-size="400"><div class="thick-dot" style="width:26px; height:26px;"></div></div>
+                    <div class="thick-btn" data-size="1"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
+                    <div class="thick-btn" data-size="5"><div class="thick-dot" style="width:4px; height:4px;"></div></div>
+                    <div class="thick-btn" data-size="10"><div class="thick-dot" style="width:7px; height:7px;"></div></div>
+                    <div class="thick-btn" data-size="20"><div class="thick-dot" style="width:10px; height:10px;"></div></div>
+                    <div class="thick-btn" data-size="40"><div class="thick-dot" style="width:14px; height:14px;"></div></div>
+                    <div class="thick-btn" data-size="60"><div class="thick-dot" style="width:18px; height:18px;"></div></div>
+                    <div class="thick-btn" data-size="80"><div class="thick-dot" style="width:22px; height:22px;"></div></div>
+                    <div class="thick-btn" data-size="100"><div class="thick-dot" style="width:26px; height:26px;"></div></div>
                 </div>
-                <input type="range" id="thicknessSlider" min="1" max="400" value="5">
+                <input type="range" id="thicknessSlider" min="1" max="100" value="5">
             </div>
 
             <div class="slider-group">
@@ -239,7 +238,7 @@
         }
         updateRecentColorsUI();
 
-        // --- Crayon Noise Texture Generation (Smudgy & Layerable) ---
+        // --- Crayon Smudgy Noise Generation ---
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
@@ -274,7 +273,6 @@
             thicknessSlider.value = currentThickness;
             valThick.innerText = currentThickness;
 
-            // Highlight matching quick-thickness button if applicable
             thickButtons.forEach(btn => {
                 if (parseInt(btn.dataset.size) === currentThickness) {
                     btn.classList.add('active');
@@ -294,7 +292,6 @@
             setThickness(e.target.value);
         });
 
-        // Initialize default thickness
         setThickness(5);
 
         document.getElementById('colorPicker').addEventListener('change', (e) => updateColorFromPicker(e.target.value));
@@ -304,27 +301,29 @@
             currentOpacity = e.target.value / 100; document.getElementById('valOpac').innerText = e.target.value + '%';
         });
 
-        // --- Undo / Redo & Clearing Systems ---
-        let undoStack = []; let redoStack = [];
+        // --- Memory-Optimized Undo System (Compressed JPEG) ---
+        let undoStack = [];
 
         function saveState() {
-            undoStack.push(drawCanvas.toDataURL());
-            if (undoStack.length > 10) undoStack.shift(); 
-            redoStack = [];
+            // Compress to JPEG at 0.7 quality to keep memory footprint extremely lightweight
+            const compressedDataUrl = drawCanvas.toDataURL('image/jpeg', 0.7);
+            undoStack.push(compressedDataUrl);
+            if (undoStack.length > 8) undoStack.shift(); 
         }
 
-        function restoreState(imgDataUrl) {
-            const img = new Image();
-            img.onload = () => {
-                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-                drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
-                drawCtx.drawImage(img, 0, 0);
-            };
-            img.src = imgDataUrl;
+        function undo() {
+            if (undoStack.length > 0) {
+                const imgDataUrl = undoStack.pop();
+                const img = new Image();
+                img.onload = () => {
+                    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    drawCtx.fillStyle = '#ffffff'; 
+                    drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    drawCtx.drawImage(img, 0, 0);
+                };
+                img.src = imgDataUrl;
+            }
         }
-
-        function undo() { if (undoStack.length > 0) { redoStack.push(drawCanvas.toDataURL()); restoreState(undoStack.pop()); } }
-        function redo() { if (redoStack.length > 0) { undoStack.push(drawCanvas.toDataURL()); restoreState(redoStack.pop()); } }
 
         function clearCanvas() {
             saveState();
@@ -374,14 +373,14 @@
             return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale };
         }
 
-        // --- Multi-Touch Input Logic (1 Finger Draw, 3 Fingers Pan) ---
+        // --- Multi-Touch Input Logic ---
         let isDrawing = false; let strokePoints = [];
         let activePointerId = null;
 
         viewport.addEventListener('pointerdown', (e) => {
             activeTouches.set(e.pointerId, e);
 
-            if (activeTouches.size === 3) {
+            if (activeTouches.size >= 3) {
                 if (isDrawing) {
                     isDrawing = false;
                     draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
@@ -403,7 +402,6 @@
 
                 isDrawing = true; 
                 strokePoints = [coords];
-                // Randomized pattern offset ensures layered strokes shift patterns and fill holes!
                 strokePatternOffset = { x: Math.random() * 300, y: Math.random() * 300 };
                 renderDraft();
             }
@@ -485,7 +483,6 @@
                 draftCtx.lineWidth = currentThickness;
                 drawSmoothPath(draftCtx);
                 
-                // Messier, smudgier edge turbulence
                 draftCtx.save();
                 let edgeOffset = currentThickness * 0.22;
                 draftCtx.translate(Math.random() * edgeOffset - (edgeOffset/2), Math.random() * edgeOffset - (edgeOffset/2));
@@ -493,7 +490,6 @@
                 drawSmoothPath(draftCtx);
                 draftCtx.restore();
                 
-                // Scale pattern transformation to match thickness dynamically!
                 draftCtx.globalCompositeOperation = 'destination-out';
                 let patternScale = Math.max(0.3, currentThickness / 40);
                 const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y).scale(patternScale, patternScale);
@@ -588,8 +584,8 @@
                 
                 const baseViewport = page.getViewport({ scale: 1 });
                 let renderScale = 1.5; 
-                if (baseViewport.width * renderScale > 2400 || baseViewport.height * renderScale > 2400) {
-                    renderScale = 2400 / Math.max(baseViewport.width, baseViewport.height);
+                if (baseViewport.width * renderScale > 2000 || baseViewport.height * renderScale > 2000) {
+                    renderScale = 2000 / Math.max(baseViewport.width, baseViewport.height);
                 }
                 const viewport = page.getViewport({ scale: renderScale });
                 
@@ -599,8 +595,8 @@
                 const img = new Image();
                 img.onload = () => { 
                     let w = img.width; let h = img.height;
-                    if (w > 2400 || h > 2400) {
-                        let ratio = 2400 / Math.max(w, h);
+                    if (w > 2000 || h > 2000) {
+                        let ratio = 2000 / Math.max(w, h);
                         w = Math.floor(w * ratio); h = Math.floor(h * ratio);
                     }
                     resizeWorkspace(w, h); 
