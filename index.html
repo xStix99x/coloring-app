@@ -27,9 +27,9 @@
             position: absolute; top: 20px; left: 20px; 
             background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             padding: 20px; border-radius: 16px; border: 1px solid #333;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px;
             pointer-events: auto; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-            width: 230px; opacity: 1; transform: translateX(0);
+            width: 240px; opacity: 1; transform: translateX(0);
         }
         
         #toolbar.hidden { 
@@ -52,24 +52,31 @@
             opacity: 1; transform: scale(1); pointer-events: auto;
         }
 
-        .tool-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
-        button { padding: 10px 5px; flex-grow: 1; flex-basis: 30%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px;}
+        .tool-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; }
+        button { padding: 8px 4px; flex-grow: 1; flex-basis: 30%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px;}
         button.active { background: #0a84ff; color: white; font-weight: bold; }
         button:active { transform: scale(0.95); }
         
-        .color-section { display: flex; flex-direction: column; gap: 8px; }
+        .color-section { display: flex; flex-direction: column; gap: 6px; }
         .color-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #a1a1a6; }
         
         .color-inputs { display: flex; gap: 12px; align-items: center; justify-content: center; }
-        input[type="color"] { border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; background: none; flex-shrink: 0; }
+        input[type="color"] { border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; background: none; flex-shrink: 0; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
         
-        #recentColors { display: grid; grid-template-columns: repeat(4, 24px); gap: 6px; }
-        .swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
+        #recentColors { display: grid; grid-template-columns: repeat(4, 22px); gap: 6px; }
+        .swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
         .swatch:active { transform: scale(0.8); }
 
-        .slider-group { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: #a1a1a6; }
+        /* Thickness Grid Selector */
+        .thickness-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 2px; }
+        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .thick-btn.active { background: #0a84ff; border-color: #0a84ff; }
+        .thick-dot { background: #ffffff; border-radius: 50%; }
+        .thick-btn.active .thick-dot { background: #ffffff; }
+
+        .slider-group { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #a1a1a6; }
         .slider-group label { display: flex; justify-content: space-between; }
         input[type="range"] { width: 100%; accent-color: #0a84ff; }
 
@@ -116,8 +123,20 @@
             
             <div class="slider-group">
                 <label><span>Thickness</span> <span id="valThick">5</span></label>
+                <!-- 8 Incremental Thickness Buttons Grid -->
+                <div class="thickness-grid" id="thicknessGrid">
+                    <div class="thick-btn" data-size="2"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
+                    <div class="thick-btn" data-size="10"><div class="thick-dot" style="width:5px; height:5px;"></div></div>
+                    <div class="thick-btn" data-size="20"><div class="thick-dot" style="width:9px; height:9px;"></div></div>
+                    <div class="thick-btn" data-size="40"><div class="thick-dot" style="width:13px; height:13px;"></div></div>
+                    <div class="thick-btn" data-size="80"><div class="thick-dot" style="width:17px; height:17px;"></div></div>
+                    <div class="thick-btn" data-size="100"><div class="thick-dot" style="width:20px; height:20px;"></div></div>
+                    <div class="thick-btn" data-size="200"><div class="thick-dot" style="width:23px; height:23px;"></div></div>
+                    <div class="thick-btn" data-size="400"><div class="thick-dot" style="width:26px; height:26px;"></div></div>
+                </div>
                 <input type="range" id="thicknessSlider" min="1" max="400" value="5">
             </div>
+
             <div class="slider-group">
                 <label><span>Opacity</span> <span id="valOpac">100%</span></label>
                 <input type="range" id="opacitySlider" min="1" max="100" value="100">
@@ -127,7 +146,7 @@
                 <input type="range" id="zoomSlider" min="10" max="200" value="100">
             </div>
             
-            <div class="tool-row" style="margin-top: 5px;">
+            <div class="tool-row" style="margin-top: 2px;">
                 <input type="file" id="fileUpload" accept="image/jpeg, image/png, application/pdf" style="display: none;">
                 <button onclick="document.getElementById('fileUpload').click()">📁 Import</button>
                 <button onclick="saveArtwork()">💾 Save</button>
@@ -220,17 +239,17 @@
         }
         updateRecentColorsUI();
 
-        // --- Crayon Smudgy Noise Generation (Balanced Hole Size) ---
+        // --- Crayon Noise Texture Generation (Smudgy & Layerable) ---
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
-        nCtx.filter = 'blur(1.5px)';
-        for (let x = 0; x < 300; x += 4) {
-            for (let y = 0; y < 300; y += 4) {
-                if (Math.random() > 0.82) {
-                    nCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        nCtx.filter = 'blur(1.2px)';
+        for (let x = 0; x < 300; x += 3) {
+            for (let y = 0; y < 300; y += 3) {
+                if (Math.random() > 0.83) {
+                    nCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                     nCtx.beginPath();
-                    nCtx.arc(x, y, Math.random() * 1.8 + 0.8, 0, Math.PI * 2); 
+                    nCtx.arc(x, y, Math.random() * 1.5 + 0.5, 0, Math.PI * 2); 
                     nCtx.fill();
                 }
             }
@@ -238,7 +257,7 @@
         const crayonPattern = draftCtx.createPattern(noiseCanvas, 'repeat');
         let strokePatternOffset = {x: 0, y: 0};
 
-        // --- Controls ---
+        // --- Controls & Thickness Grid ---
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -246,12 +265,40 @@
             });
         });
 
+        const thicknessSlider = document.getElementById('thicknessSlider');
+        const valThick = document.getElementById('valThick');
+        const thickButtons = document.querySelectorAll('.thick-btn');
+
+        function setThickness(val) {
+            currentThickness = parseInt(val);
+            thicknessSlider.value = currentThickness;
+            valThick.innerText = currentThickness;
+
+            // Highlight matching quick-thickness button if applicable
+            thickButtons.forEach(btn => {
+                if (parseInt(btn.dataset.size) === currentThickness) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        thickButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setThickness(btn.dataset.size);
+            });
+        });
+
+        thicknessSlider.addEventListener('input', (e) => {
+            setThickness(e.target.value);
+        });
+
+        // Initialize default thickness
+        setThickness(5);
+
         document.getElementById('colorPicker').addEventListener('change', (e) => updateColorFromPicker(e.target.value));
         document.getElementById('colorPicker').addEventListener('input', (e) => currentColor = e.target.value);
-        
-        document.getElementById('thicknessSlider').addEventListener('input', (e) => {
-            currentThickness = e.target.value; document.getElementById('valThick').innerText = currentThickness;
-        });
         
         document.getElementById('opacitySlider').addEventListener('input', (e) => {
             currentOpacity = e.target.value / 100; document.getElementById('valOpac').innerText = e.target.value + '%';
@@ -356,6 +403,7 @@
 
                 isDrawing = true; 
                 strokePoints = [coords];
+                // Randomized pattern offset ensures layered strokes shift patterns and fill holes!
                 strokePatternOffset = { x: Math.random() * 300, y: Math.random() * 300 };
                 renderDraft();
             }
@@ -431,21 +479,24 @@
             } 
             else if (currentTool === 'crayon') {
                 draftCtx.globalAlpha = currentOpacity * 0.95;
-                draftCtx.shadowBlur = 2;
+                draftCtx.shadowBlur = 3;
                 draftCtx.shadowColor = currentColor;
                 
                 draftCtx.lineWidth = currentThickness;
                 drawSmoothPath(draftCtx);
                 
+                // Messier, smudgier edge turbulence
                 draftCtx.save();
-                let edgeOffset = currentThickness * 0.15;
+                let edgeOffset = currentThickness * 0.22;
                 draftCtx.translate(Math.random() * edgeOffset - (edgeOffset/2), Math.random() * edgeOffset - (edgeOffset/2));
-                draftCtx.lineWidth = currentThickness * 0.8; 
+                draftCtx.lineWidth = currentThickness * 0.85; 
                 drawSmoothPath(draftCtx);
                 draftCtx.restore();
                 
+                // Scale pattern transformation to match thickness dynamically!
                 draftCtx.globalCompositeOperation = 'destination-out';
-                const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y);
+                let patternScale = Math.max(0.3, currentThickness / 40);
+                const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y).scale(patternScale, patternScale);
                 crayonPattern.setTransform(matrix);
                 draftCtx.fillStyle = crayonPattern;
                 draftCtx.fillRect(0, 0, draftCanvas.width, draftCanvas.height);
