@@ -28,16 +28,28 @@
             background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             padding: 20px; border-radius: 16px; border: 1px solid #333;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px;
-            pointer-events: auto; transition: transform 0.3s ease; width: 230px;
+            pointer-events: auto; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+            width: 230px; opacity: 1; transform: translateX(0);
         }
         
-        #toolbar.hidden { transform: translateX(-150%); }
+        #toolbar.hidden { 
+            transform: translateX(-150%) scale(0.9); 
+            opacity: 0; 
+            pointer-events: none; 
+        }
         
         #toggle-ui {
             position: absolute; top: 20px; left: 20px; width: 44px; height: 44px;
-            background: #2c2c2e; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; font-size: 20px;
             pointer-events: auto; cursor: pointer; z-index: 99; border: 1px solid #444; color: white;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            opacity: 0; transform: scale(0.5); pointer-events: none;
+        }
+
+        #toggle-ui.visible {
+            opacity: 1; transform: scale(1); pointer-events: auto;
         }
 
         .tool-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
@@ -75,7 +87,7 @@
 </head>
 <body>
 
-    <button id="toggle-ui" onclick="toggleToolbar()">🎨</button>
+    <button id="toggle-ui" onclick="toggleToolbar()">🛠️</button>
 
     <div id="ui-layer">
         <div id="toolbar">
@@ -144,7 +156,6 @@
         const topCtx = topCanvas.getContext('2d', { willReadFrequently: true });
         const viewport = document.getElementById('viewport');
         
-        // Single, reusable memory instance for flood fill
         const compCanvas = document.createElement('canvas');
         const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
         
@@ -152,6 +163,45 @@
         let currentColor = '#0a84ff';
         let currentThickness = 5;
         let currentOpacity = 1.0;
+
+        // --- Inactivity Auto-Hide Timer ---
+        let inactivityTimer = null;
+        const toolbarEl = document.getElementById('toolbar');
+        const toggleBtnEl = document.getElementById('toggle-ui');
+
+        function resetInactivityTimer() {
+            // Do not hide if the toolbar is already hidden manually/automatically
+            if (toolbarEl.classList.contains('hidden')) return;
+
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                hideToolbar();
+            }, 10000); // 10 seconds
+        }
+
+        function hideToolbar() {
+            toolbarEl.classList.add('hidden');
+            toggleBtnEl.classList.add('visible');
+        }
+
+        function toggleToolbar() {
+            if (toolbarEl.classList.contains('hidden')) {
+                toolbarEl.classList.remove('hidden');
+                toggleBtnEl.classList.remove('visible');
+                resetInactivityTimer();
+            } else {
+                hideToolbar();
+            }
+        }
+
+        // Reset timer on any interaction inside the toolbar or viewport
+        ['pointerdown', 'pointermove', 'wheel', 'change', 'input'].forEach(evt => {
+            toolbarEl.addEventListener(evt, resetInactivityTimer);
+            viewport.addEventListener(evt, resetInactivityTimer);
+        });
+
+        // Start initial timer
+        resetInactivityTimer();
 
         let recentColors = ['#0A84FF', '#FF3B30', '#34C759', '#FFCC00', '#AF52DE', '#FF9500', '#5AC8FA', '#000000'];
         
@@ -194,9 +244,7 @@
         const crayonPattern = draftCtx.createPattern(noiseCanvas, 'repeat');
         let strokePatternOffset = {x: 0, y: 0};
 
-        // --- UI & Controls ---
-        function toggleToolbar() { document.getElementById('toolbar').classList.toggle('hidden'); }
-
+        // --- Controls ---
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
@@ -215,7 +263,7 @@
             currentOpacity = e.target.value / 100; document.getElementById('valOpac').innerText = e.target.value + '%';
         });
 
-        // --- Optimized Undo / Redo System ---
+        // --- Undo / Redo System ---
         let undoStack = []; let redoStack = [];
 
         function saveState() {
@@ -474,10 +522,8 @@
                 const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                 const page = await pdf.getPage(1); 
                 
-                // Fetch base size to check constraints before rendering
                 const baseViewport = page.getViewport({ scale: 1 });
                 let renderScale = 1.5; 
-                // Scale down massive PDFs to avoid crashes, while maintaining ratio
                 if (baseViewport.width * renderScale > 2400 || baseViewport.height * renderScale > 2400) {
                     renderScale = 2400 / Math.max(baseViewport.width, baseViewport.height);
                 }
@@ -489,13 +535,11 @@
                 const img = new Image();
                 img.onload = () => { 
                     let w = img.width; let h = img.height;
-                    // Scale down massive Images to avoid crashes, while maintaining ratio
                     if (w > 2400 || h > 2400) {
                         let ratio = 2400 / Math.max(w, h);
                         w = Math.floor(w * ratio); h = Math.floor(h * ratio);
                     }
                     resizeWorkspace(w, h); 
-                    // Tell canvas to draw image at exactly the scaled w and h so it doesn't get cut off!
                     topCtx.drawImage(img, 0, 0, w, h); 
                     saveState(); 
                 };
