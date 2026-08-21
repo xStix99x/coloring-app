@@ -381,4 +381,238 @@
             scale = Math.min((rect.width - 40) / w, (rect.height - 40) / h);
             scale = Math.max(0.1, Math.min(scale, 2)); 
             
- 
+            panX = (rect.width - w * scale) / 2; panY = (rect.height - h * scale) / 2;
+            updateTransform();
+        }
+        resizeWorkspace(1200, 1600);
+
+        function getCanvasCoords(e) {
+            const rect = workspace.getBoundingClientRect();
+            return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale };
+        }
+
+        // --- Throttled Multi-Touch Input Logic ---
+        let isDrawing = false; 
+        let strokePoints = [];
+        let activePointerId = null;
+        let rafId = null;
+
+        viewport.addEventListener('pointerdown', (e) => {
+            activeTouches.set(e.pointerId, e);
+
+            if (activeTouches.size >= 3) {
+                // Cancel drawing if 3 fingers hit the screen
+                if (isDrawing) {
+                    isDrawing = false;
+                    if (rafId) cancelAnimationFrame(rafId);
+                    draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
+                    strokePoints = [];
+                }
+                activePointerId = null;
+                return;
+            }
+
+            if (activeTouches.size === 1) {
+                activePointerId = e.pointerId;
+                const coords = getCanvasCoords(e);
+                
+                isDrawing = true; 
+                strokePoints = [coords];
+                strokePatternOffset = { x: Math.random() * 300, y: Math.random() * 300 };
+                requestRender();
+            }
+        });
+
+        viewport.addEventListener('pointermove', (e) => {
+            if (activeTouches.has(e.pointerId)) {
+                activeTouches.set(e.pointerId, e);
+            }
+
+            // PANNING LOGIC
+            if (activeTouches.size >= 3) {
+                // If the canvas is locked, ignore the 3-finger pan entirely!
+                if (isCanvasLocked) return; 
+
+                const touches = Array.from(activeTouches.values());
+                let avgMX = 0, avgMY = 0;
+                touches.forEach(t => {
+                    avgMX += t.movementX;
+                    avgMY += t.movementY;
+                });
+                panX += avgMX / touches.length; 
+                panY += avgMY / touches.length;
+                updateTransform();
+                return;
+            }
+
+            if (isDrawing && e.pointerId === activePointerId && activeTouches.size === 1) {
+                strokePoints.push(getCanvasCoords(e));
+                requestRender();
+            }
+        });
+
+        function requestRender() {
+            if (rafId) return; 
+            rafId = requestAnimationFrame(() => {
+                renderDraft();
+                rafId = null;
+            });
+        }
+
+        function endPointer(e) {
+            activeTouches.delete(e.pointerId);
+
+            if (e.pointerId === activePointerId && isDrawing) {
+                isDrawing = false;
+                activePointerId = null;
+                if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+                
+                drawCtx.globalAlpha = 1; 
+                drawCtx.drawImage(draftCanvas, 0, 0);
+                draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
+                strokePoints = [];
+            }
+        }
+
+        viewport.addEventListener('pointerup', endPointer);
+        viewport.addEventListener('pointerout', endPointer);
+        viewport.addEventListener('pointercancel', endPointer);
+
+        // --- Smooth Quadratic Curve Engine ---
+        function renderDraft() {
+            draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
+            if (strokePoints.length === 0) return;
+
+            draftCtx.lineCap = 'round'; draftCtx.lineJoin = 'round';
+            draftCtx.strokeStyle = currentColor; draftCtx.globalCompositeOperation = 'source-over';
+
+            if (currentTool === 'eraser') {
+                draftCtx.lineWidth = currentThickness; draftCtx.strokeStyle = '#ffffff';
+                draftCtx.globalAlpha = 1; draftCtx.shadowBlur = 0; drawSmoothPath(draftCtx);
+            } 
+            else if (currentTool === 'marker') {
+                draftCtx.lineWidth = currentThickness; draftCtx.globalAlpha = currentOpacity * 0.7;
+                draftCtx.shadowBlur = Math.max(2, currentThickness * 0.15); draftCtx.shadowColor = currentColor;
+                drawSmoothPath(draftCtx); 
+            } 
+            else if (currentTool === 'brush') {
+                draftCtx.shadowBlur = 0; draftCtx.globalAlpha = currentOpacity * 0.35;
+                let numStreaks = 4; let spread = currentThickness * 0.3;
+                for (let i = 0; i < numStreaks; i++) {
+                    let offset = (i - (numStreaks - 1) / 2) * (spread / numStreaks);
+                    draftCtx.save(); draftCtx.translate(offset, offset * 0.3);
+                    draftCtx.lineWidth = Math.max(1, currentThickness * 0.6); 
+                    drawSmoothPath(draftCtx); draftCtx.restore();
+                }
+            } 
+            else if (currentTool === 'crayon') {
+                draftCtx.globalAlpha = currentOpacity * 0.95;
+                draftCtx.shadowBlur = 3;
+                draftCtx.shadowColor = currentColor;
+                
+                draftCtx.lineWidth = currentThickness;
+                drawSmoothPath(draftCtx);
+                
+                draftCtx.save();
+                let edgeOffset = currentThickness * 0.22;
+                draftCtx.translate(Math.random() * edgeOffset - (edgeOffset/2), Math.random() * edgeOffset - (edgeOffset/2));
+                draftCtx.lineWidth = currentThickness * 0.85; 
+                drawSmoothPath(draftCtx);
+                draftCtx.restore();
+                
+                draftCtx.globalCompositeOperation = 'destination-out';
+                let patternScale = Math.max(0.3, currentThickness / 40);
+                const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y).scale(patternScale, patternScale);
+                crayonPattern.setTransform(matrix);
+                draftCtx.fillStyle = crayonPattern;
+                draftCtx.fillRect(0, 0, draftCanvas.width, draftCanvas.height);
+            }
+        }
+
+        function drawSmoothPath(ctx) {
+            ctx.beginPath();
+            if (strokePoints.length < 3) {
+                ctx.moveTo(strokePoints[0].x, strokePoints[0].y); ctx.lineTo(strokePoints[0].x + 0.1, strokePoints[0].y);
+                ctx.stroke(); return;
+            }
+            ctx.moveTo(strokePoints[0].x, strokePoints[0].y);
+            for (let i = 1; i < strokePoints.length - 2; i++) {
+                const xc = (strokePoints[i].x + strokePoints[i + 1].x) / 2;
+                const yc = (strokePoints[i].y + strokePoints[i + 1].y) / 2;
+                ctx.quadraticCurveTo(strokePoints[i].x, strokePoints[i].y, xc, yc);
+            }
+            ctx.quadraticCurveTo(
+                strokePoints[strokePoints.length - 2].x, strokePoints[strokePoints.length - 2].y,
+                strokePoints[strokePoints.length - 1].x, strokePoints[strokePoints.length - 1].y
+            );
+            ctx.stroke();
+        }
+
+        // --- Import & Export ---
+        document.getElementById('fileUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0]; if (!file) return;
+
+            if (file.type === 'application/pdf') {
+                const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                const page = await pdf.getPage(1); 
+                
+                const baseViewport = page.getViewport({ scale: 1 });
+                let renderScale = 1.5; 
+                if (baseViewport.width * renderScale > 2000 || baseViewport.height * renderScale > 2000) {
+                    renderScale = 2000 / Math.max(baseViewport.width, baseViewport.height);
+                }
+                const viewport = page.getViewport({ scale: renderScale });
+                
+                resizeWorkspace(viewport.width, viewport.height);
+                await page.render({ canvasContext: topCtx, viewport: viewport }).promise; 
+            } else {
+                const img = new Image();
+                img.onload = () => { 
+                    let w = img.width; let h = img.height;
+                    if (w > 2000 || h > 2000) {
+                        let ratio = 2000 / Math.max(w, h);
+                        w = Math.floor(w * ratio); h = Math.floor(h * ratio);
+                    }
+                    resizeWorkspace(w, h); 
+                    topCtx.drawImage(img, 0, 0, w, h); 
+                };
+                img.src = URL.createObjectURL(file);
+            }
+        });
+
+        // iPad-Optimized Save Function
+        function saveArtwork() {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = drawCanvas.width; 
+            exportCanvas.height = drawCanvas.height; 
+            const exportCtx = exportCanvas.getContext('2d');
+            
+            exportCtx.fillStyle = '#ffffff'; 
+            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height); 
+            exportCtx.drawImage(drawCanvas, 0, 0);
+            exportCtx.globalCompositeOperation = 'multiply'; 
+            exportCtx.drawImage(topCanvas, 0, 0);
+
+            const dataUrl = exportCanvas.toDataURL('image/png');
+            const win = window.open();
+            if (win) {
+                win.document.write('<iframe src="' + dataUrl + '" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>');
+            } else {
+                const link = document.createElement('a'); 
+                link.download = 'Coloring-Page.png'; 
+                link.href = dataUrl; 
+                link.click();
+            }
+        }
+
+        // --- Register Service Worker for Offline Support ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered!', reg))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
