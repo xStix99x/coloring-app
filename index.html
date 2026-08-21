@@ -53,8 +53,14 @@
         }
 
         .tool-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; }
-        button { padding: 8px 4px; flex-grow: 1; flex-basis: 30%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px;}
-        button.active { background: #0a84ff; color: white; font-weight: bold; }
+        
+        /* 2x2 Grid Layout for the 4 Tools */
+        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .tool-btn { padding: 10px 4px; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; text-align: center; }
+        .tool-btn.active { background: #0a84ff; color: white; font-weight: bold; }
+        .tool-btn:active { transform: scale(0.95); }
+
+        button { padding: 8px 4px; flex-grow: 1; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px;}
         button:active { transform: scale(0.95); }
         
         .color-section { display: flex; flex-direction: column; gap: 6px; }
@@ -115,7 +121,8 @@
                 </div>
             </div>
             
-            <div class="tool-row">
+            <!-- 2x2 Tool Grid -->
+            <div class="tool-grid">
                 <button class="tool-btn active" data-tool="marker">🖊️ Marker</button>
                 <button class="tool-btn" data-tool="brush">🖌️ Brush</button>
                 <button class="tool-btn" data-tool="crayon">🖍️ Crayon</button>
@@ -264,7 +271,9 @@
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active'); currentTool = e.target.dataset.tool;
+                const targetBtn = e.target.closest('.tool-btn');
+                targetBtn.classList.add('active'); 
+                currentTool = targetBtn.dataset.tool;
             });
         });
 
