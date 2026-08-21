@@ -73,7 +73,6 @@
         .palette-buttons button { font-size: 11px; padding: 4px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; }
         .palette-buttons button.active-palette { background: #0a84ff; border-color: #0a84ff; }
 
-        /* Thickness Grid Selector */
         .thickness-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 2px; }
         .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .thick-btn.active { background: #0a84ff; border-color: #0a84ff; }
@@ -127,7 +126,6 @@
             
             <div class="slider-group">
                 <label><span>Thickness</span> <span id="valThick">5</span></label>
-                <!-- 8 Thickness Buttons: 1, 5, 10, 20, 40, 60, 80, 100 -->
                 <div class="thickness-grid" id="thicknessGrid">
                     <div class="thick-btn" data-size="1"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
                     <div class="thick-btn" data-size="5"><div class="thick-dot" style="width:4px; height:4px;"></div></div>
@@ -188,7 +186,7 @@
         let currentThickness = 5;
         let currentOpacity = 1.0;
 
-        // --- Inactivity Auto-Hide Timer (5 Seconds) ---
+        // --- Inactivity Auto-Hide Timer ---
         let inactivityTimer = null;
         const toolbarEl = document.getElementById('toolbar');
         const toggleBtnEl = document.getElementById('toggle-ui');
@@ -196,7 +194,7 @@
         function resetInactivityTimer() {
             if (toolbarEl.classList.contains('hidden')) return;
             clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => { hideToolbar(); }, 6000);
+            inactivityTimer = setTimeout(() => { hideToolbar(); }, 5000);
         }
 
         function hideToolbar() {
@@ -247,10 +245,9 @@
             document.getElementById('colorPicker').value = hex;
         }
 
-        // Initialize Standard Palette by default
         setPalette('standard');
 
-        // --- Crayon Smudgy Noise Generation ---
+        // --- Crayon Noise Texture Generation ---
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
@@ -313,7 +310,6 @@
             currentOpacity = e.target.value / 100; document.getElementById('valOpac').innerText = e.target.value + '%';
         });
 
-        // --- Clearing Systems (No Undo Stack to Save RAM) ---
         function clearCanvas() {
             drawCtx.fillStyle = '#ffffff'; 
             drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
@@ -361,9 +357,11 @@
             return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale };
         }
 
-        // --- Multi-Touch Input Logic ---
-        let isDrawing = false; let strokePoints = [];
+        // --- Throttled Multi-Touch Input Logic (Prevents Event Flooding / Crashes) ---
+        let isDrawing = false; 
+        let strokePoints = [];
         let activePointerId = null;
+        let rafId = null;
 
         viewport.addEventListener('pointerdown', (e) => {
             activeTouches.set(e.pointerId, e);
@@ -371,6 +369,7 @@
             if (activeTouches.size >= 3) {
                 if (isDrawing) {
                     isDrawing = false;
+                    if (rafId) cancelAnimationFrame(rafId);
                     draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
                     strokePoints = [];
                 }
@@ -390,7 +389,7 @@
                 isDrawing = true; 
                 strokePoints = [coords];
                 strokePatternOffset = { x: Math.random() * 300, y: Math.random() * 300 };
-                renderDraft();
+                requestRender();
             }
         });
 
@@ -414,9 +413,17 @@
 
             if (isDrawing && e.pointerId === activePointerId && activeTouches.size === 1) {
                 strokePoints.push(getCanvasCoords(e));
-                renderDraft();
+                requestRender();
             }
         });
+
+        function requestRender() {
+            if (rafId) return; 
+            rafId = requestAnimationFrame(() => {
+                renderDraft();
+                rafId = null;
+            });
+        }
 
         function endPointer(e) {
             activeTouches.delete(e.pointerId);
@@ -424,6 +431,8 @@
             if (e.pointerId === activePointerId && isDrawing) {
                 isDrawing = false;
                 activePointerId = null;
+                if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+                
                 drawCtx.globalAlpha = 1; 
                 drawCtx.drawImage(draftCanvas, 0, 0);
                 draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
@@ -600,15 +609,15 @@
             exportCtx.globalCompositeOperation = 'multiply'; exportCtx.drawImage(topCanvas, 0, 0);
             const link = document.createElement('a'); link.download = 'Coloring-Page.png'; link.href = exportCanvas.toDataURL('image/png'); link.click();
         }
-        
-        // Register Service Worker for Offline Support
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registered!', reg))
-            .catch(err => console.log('Service Worker registration failed:', err));
-    });
-}
+
+        // --- Register Service Worker for Offline Support ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered!', reg))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
     </script>
 </body>
 </html>
