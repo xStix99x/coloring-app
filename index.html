@@ -6,7 +6,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/xStix99x/coloring-app/refs/heads/main/Pallete.jpeg">
+    <!-- Standard Browser Tab Favicon -->
+    <link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/xStix99x/coloring-app/refs/heads/main/Pallete.jpeg">
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/xStix99x/coloring-app/refs/heads/main/Pallete.jpeg">
+    
     <title>Coloring Studio</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -138,7 +144,7 @@
         const topCtx = topCanvas.getContext('2d', { willReadFrequently: true });
         const viewport = document.getElementById('viewport');
         
-        // Single, reusable memory instance for flood fill to prevent iPad memory crashes
+        // Single, reusable memory instance for flood fill
         const compCanvas = document.createElement('canvas');
         const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
         
@@ -174,13 +180,13 @@
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
-        nCtx.filter = 'blur(1.5px)'; // Soft smudgy look
+        nCtx.filter = 'blur(1.5px)';
         for (let x = 0; x < 300; x += 5) {
             for (let y = 0; y < 300; y += 5) {
                 if (Math.random() > 0.85) {
                     nCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     nCtx.beginPath();
-                    nCtx.arc(x, y, Math.random() * 2.5 + 1.0, 0, Math.PI * 2); // Bigger holes
+                    nCtx.arc(x, y, Math.random() * 2.5 + 1.0, 0, Math.PI * 2); 
                     nCtx.fill();
                 }
             }
@@ -214,7 +220,6 @@
 
         function saveState() {
             undoStack.push(drawCanvas.toDataURL());
-            // Capped at 10 to prevent iOS Safari memory crashes!
             if (undoStack.length > 10) undoStack.shift(); 
             redoStack = [];
         }
@@ -253,19 +258,11 @@
         });
 
         function resizeWorkspace(w, h) {
-            // Safety Check: Cap imported file size to prevent memory crashes
-            let resizeScale = 1;
-            if (w > 2000 || h > 2000) {
-                resizeScale = 2000 / Math.max(w, h);
-                w = Math.floor(w * resizeScale);
-                h = Math.floor(h * resizeScale);
-            }
-
             workspace.style.width = w + 'px'; workspace.style.height = h + 'px';
             drawCanvas.width = w; drawCanvas.height = h;
             draftCanvas.width = w; draftCanvas.height = h;
             topCanvas.width = w; topCanvas.height = h;
-            compCanvas.width = w; compCanvas.height = h; // Resize persistent flood-fill memory buffer
+            compCanvas.width = w; compCanvas.height = h; 
             
             clearCanvas();
 
@@ -372,16 +369,13 @@
                 }
             } 
             else if (currentTool === 'crayon') {
-                // To create uneven edges, we draw the stroke twice slightly offset
                 draftCtx.globalAlpha = currentOpacity * 0.95;
                 draftCtx.shadowBlur = 2;
                 draftCtx.shadowColor = currentColor;
                 
-                // 1st Stroke: Main Base
                 draftCtx.lineWidth = currentThickness;
                 drawSmoothPath(draftCtx);
                 
-                // 2nd Stroke: Slightly offset and thinner for uneven edge texture
                 draftCtx.save();
                 let edgeOffset = currentThickness * 0.15;
                 draftCtx.translate(Math.random() * edgeOffset - (edgeOffset/2), Math.random() * edgeOffset - (edgeOffset/2));
@@ -389,7 +383,6 @@
                 drawSmoothPath(draftCtx);
                 draftCtx.restore();
                 
-                // Punch out the holes
                 draftCtx.globalCompositeOperation = 'destination-out';
                 const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y);
                 crayonPattern.setTransform(matrix);
@@ -430,12 +423,11 @@
             const w = drawCanvas.width, h = drawCanvas.height;
             if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
 
-            // Re-use permanent compCanvas to save memory
             compCtx.clearRect(0, 0, w, h);
             compCtx.drawImage(drawCanvas, 0, 0); 
             compCtx.globalCompositeOperation = 'multiply'; 
             compCtx.drawImage(topCanvas, 0, 0);
-            compCtx.globalCompositeOperation = 'source-over'; // Reset mode
+            compCtx.globalCompositeOperation = 'source-over'; 
 
             const compData = compCtx.getImageData(0, 0, w, h).data;
             const drawImgData = drawCtx.getImageData(0, 0, w, h); 
@@ -474,20 +466,39 @@
             drawCtx.putImageData(drawImgData, 0, 0);
         }
 
-        // --- Import & Export ---
+        // --- Import & Export with Fixed Sizing ---
         document.getElementById('fileUpload').addEventListener('change', async (e) => {
             const file = e.target.files[0]; if (!file) return;
 
             if (file.type === 'application/pdf') {
                 const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                 const page = await pdf.getPage(1); 
-                // Reduced scaling from 2 to 1.5 to prevent memory crashes on huge PDFs
-                const viewport = page.getViewport({ scale: 1.5 });
+                
+                // Fetch base size to check constraints before rendering
+                const baseViewport = page.getViewport({ scale: 1 });
+                let renderScale = 1.5; 
+                // Scale down massive PDFs to avoid crashes, while maintaining ratio
+                if (baseViewport.width * renderScale > 2400 || baseViewport.height * renderScale > 2400) {
+                    renderScale = 2400 / Math.max(baseViewport.width, baseViewport.height);
+                }
+                const viewport = page.getViewport({ scale: renderScale });
+                
                 resizeWorkspace(viewport.width, viewport.height);
                 await page.render({ canvasContext: topCtx, viewport: viewport }).promise; saveState();
             } else {
                 const img = new Image();
-                img.onload = () => { resizeWorkspace(img.width, img.height); topCtx.drawImage(img, 0, 0); saveState(); };
+                img.onload = () => { 
+                    let w = img.width; let h = img.height;
+                    // Scale down massive Images to avoid crashes, while maintaining ratio
+                    if (w > 2400 || h > 2400) {
+                        let ratio = 2400 / Math.max(w, h);
+                        w = Math.floor(w * ratio); h = Math.floor(h * ratio);
+                    }
+                    resizeWorkspace(w, h); 
+                    // Tell canvas to draw image at exactly the scaled w and h so it doesn't get cut off!
+                    topCtx.drawImage(img, 0, 0, w, h); 
+                    saveState(); 
+                };
                 img.src = URL.createObjectURL(file);
             }
         });
