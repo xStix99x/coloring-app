@@ -43,7 +43,7 @@
         #toolbar {
             position: absolute; top: 0; bottom: 0; width: 260px; height: 100vh;
             background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; flex-direction: column; gap: 8px; overflow: hidden; padding: 12px 10px;
+            display: flex; flex-direction: column; gap: 6px; overflow: hidden; padding: 10px 8px;
             pointer-events: auto; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease;
             z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.6);
         }
@@ -54,86 +54,87 @@
         #toolbar.hidden[data-side="right"] { transform: translateX(150%); }
 
         /* SLIM Mode Overrides */
-        #toolbar.slim { width: 68px; padding: 15px 6px; align-items: center; gap: 8px; }
+        #toolbar.slim { width: 64px; padding: 12px 6px; align-items: center; gap: 6px; }
         #toolbar.slim .hide-on-slim { display: none !important; }
 
-        .toolbar-group { display: flex; flex-direction: column; gap: 4px; width: 100%; align-items: center; }
+        .toolbar-group { display: flex; flex-direction: column; gap: 3px; width: 100%; align-items: center; }
 
         /* Header Row (Gear, Minimize, Lock) */
         .toolbar-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; }
         #toolbar.slim .toolbar-header { flex-direction: column; gap: 6px; margin-bottom: 2px; }
         
-        .icon-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; color: white; transition: 0.2s; flex-shrink: 0; }
+        .icon-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 50%; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; font-size: 15px; cursor: pointer; color: white; transition: 0.2s; flex-shrink: 0; }
         .icon-btn:active { transform: scale(0.9); }
-        #toolbar.slim .icon-btn { width: 52px; height: 34px; border-radius: 8px; font-size: 15px; }
+        #toolbar.slim .icon-btn { width: 48px; height: 32px; border-radius: 8px; font-size: 14px; }
         #lockBtn.locked { background: #ff3b30; border-color: #ff3b30; }
 
-        /* Color Row (Wheel + Swatches) */
+        /* Color Row (Block + Swatches) */
         .color-row { display: flex; flex-direction: row; gap: 6px; align-items: center; width: 100%; }
         #toolbar.slim .color-row { flex-direction: column; gap: 4px; }
         
-        /* Rainbow Color Wheel Button */
-        #colorWheelBtn {
-            width: 38px; height: 38px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+        /* Color Block Button */
+        #colorBlockBtn {
+            width: 52px; height: 52px; border-radius: 8px; cursor: pointer; flex-shrink: 0;
             background: conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red);
             padding: 3px; border: none; outline: none; transition: 0.2s; position: relative;
         }
-        #colorWheelBtn:active { transform: scale(0.9); }
-        #colorWheelBtn .inner-color { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #121212; background: #0a84ff; }
-        #toolbar.slim #colorWheelBtn { width: 52px; height: 34px; border-radius: 8px; }
-        #toolbar.slim #colorWheelBtn .inner-color { border-radius: 6px; }
+        #colorBlockBtn:active { transform: scale(0.9); }
+        #colorBlockBtn .inner-color { width: 100%; height: 100%; border-radius: 6px; border: 2px solid #121212; background: #0a84ff; }
+        #toolbar.slim #colorBlockBtn { width: 48px; height: 32px; border-radius: 6px; }
 
         /* Hidden Native Picker Overlay */
         #nativeColorPicker { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
 
         #paletteSwatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; width: 100%; }
-        #toolbar.slim #paletteSwatches { grid-template-columns: repeat(2, 22px); justify-content: center; }
+        #toolbar.slim #paletteSwatches { grid-template-columns: repeat(2, 20px); justify-content: center; }
         
         .swatch { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
         .swatch:active { transform: scale(0.8); }
 
-        .palette-buttons { display: flex; gap: 4px; justify-content: space-between; width: 100%; margin-top: 2px; }
-        .palette-buttons button { font-size: 11px; padding: 4px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer; }
+        .palette-buttons { display: flex; gap: 3px; justify-content: space-between; width: 100%; margin-top: 1px; }
+        .palette-buttons button { font-size: 10px; padding: 3px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer; }
         .palette-buttons button.active-palette { background: #0a84ff; border-color: #0a84ff; font-weight: bold; }
 
         /* Opacity Slider */
         .slider-group { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: #a1a1a6; width: 100%; }
         .slider-group label { display: flex; justify-content: space-between; font-weight: 500; width: 100%; }
-        input[type="range"] { width: 100%; accent-color: #0a84ff; }
+        input[type="range"] { width: 100%; accent-color: #0a84ff; height: 4px; }
 
         /* Tools Grid */
-        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; width: 100%; }
+        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 100%; }
         #toolbar.slim .tool-grid { grid-template-columns: 1fr; }
         
-        .tool-btn { padding: 8px 4px; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+        .tool-btn { padding: 6px 4px; border: none; border-radius: 6px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; }
         .tool-btn.active { background: #0a84ff; color: white; font-weight: bold; }
         .tool-btn:active { transform: scale(0.95); }
-        .tool-icon { font-size: 15px; }
-        #toolbar.slim .tool-btn { height: 34px; border-radius: 8px; }
+        .tool-icon { font-size: 14px; }
+        #toolbar.slim .tool-btn { height: 30px; border-radius: 6px; }
 
-        /* Thickness Grid - Rows of 2 on Full, Stacked on Slim */
-        .thickness-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 100%; }
+        /* Thickness Grid */
+        .thickness-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px; width: 100%; }
         #toolbar.slim .thickness-grid { grid-template-columns: 1fr; gap: 3px; }
         
-        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; }
+        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 5px; height: 22px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; }
         .thick-btn.active { background: #0a84ff; border-color: #0a84ff; }
         .thick-dot { background: #ffffff; border-radius: 50%; }
-        #toolbar.slim .thick-btn { height: 22px; border-radius: 6px; }
+        #toolbar.slim .thick-btn { height: 20px; border-radius: 5px; }
 
         /* Zoom Controls (+/- Stacked on Slim) */
-        .zoom-controls { display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 3px 6px; border-radius: 8px; width: 100%; }
+        .zoom-controls { display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 2px 6px; border-radius: 6px; width: 100%; }
         #toolbar.slim .zoom-controls { background: transparent; padding: 0; flex-direction: column; gap: 3px; align-items: center; }
         .zoom-title { font-size: 11px; color: #a1a1a6; font-weight: 500; }
-        #toolbar.slim .zoom-controls .icon-btn { width: 52px; height: 30px; border-radius: 6px; }
+        #toolbar.slim .zoom-controls .icon-btn { width: 48px; height: 26px; border-radius: 5px; font-size: 13px; }
 
-        /* Action Buttons */
-        .btn-row { display: flex; gap: 5px; flex-wrap: wrap; justify-content: space-between; width: 100%; }
-        .action-btn { padding: 8px 4px; flex-grow: 1; flex-basis: 48%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 12px; font-weight: bold; width: 100%; text-align: center; }
+        /* Stacked Action Buttons */
+        .btn-col { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .action-btn { padding: 6px 4px; border: none; border-radius: 6px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 11px; font-weight: bold; width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .action-btn:active { transform: scale(0.95); }
-        #toolbar.slim .action-btn { height: 34px; border-radius: 8px; padding: 0; }
+        #toolbar.slim .action-btn { height: 30px; border-radius: 6px; padding: 0; }
 
-        .clear-color-btn { background: #ff453a; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .reset-page-btn { background: #5856d6; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .clear-color-btn { background: #ff453a; }
+        .reset-page-btn { background: #5856d6; }
+        .import-btn { background: #2c2c2e; }
+        .save-btn { background: #0a84ff; }
 
         /* Viewport Canvas */
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
@@ -163,10 +164,10 @@
                 <button onclick="toggleCanvasLock(event)" class="icon-btn" id="lockBtn" title="Lock Canvas Pan">🔓</button>
             </div>
             
-            <!-- Color Row (Wheel + Swatches) -->
+            <!-- Color Row (Block + Swatches) -->
             <div class="toolbar-group">
                 <div class="color-row">
-                    <button id="colorWheelBtn" onclick="triggerColorPicker()" title="Custom Color">
+                    <button id="colorBlockBtn" onclick="triggerColorPicker()" title="Custom Color">
                         <div class="inner-color" id="wheelInner"></div>
                     </button>
                     <input type="color" id="nativeColorPicker" value="#0a84ff">
@@ -179,7 +180,7 @@
                 </div>
             </div>
 
-            <!-- Opacity Slider (Positioned above tools) -->
+            <!-- Opacity Slider -->
             <div class="toolbar-group slider-group">
                 <label class="hide-on-slim"><span>Opacity</span> <span id="valOpac">100%</span></label>
                 <input type="range" id="opacitySlider" min="1" max="100" value="100">
@@ -193,7 +194,7 @@
                 <button class="tool-btn" data-tool="eraser"><span class="tool-icon">🧽</span><span class="hide-on-slim label">Eraser</span></button>
             </div>
             
-            <!-- Thickness Grid (Rows of 2) -->
+            <!-- Thickness Grid -->
             <div class="toolbar-group thickness-section">
                 <div class="thickness-grid" id="thicknessGrid">
                     <div class="thick-btn" data-size="1"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
@@ -210,21 +211,21 @@
             <!-- Zoom Controls (+ / -) -->
             <div class="toolbar-group zoom-controls">
                 <span class="zoom-title hide-on-slim">Zoom</span>
-                <div style="display: flex; gap: 4px;" id="zoomBtnContainer">
+                <div style="display: flex; gap: 3px;" id="zoomBtnContainer">
                     <button class="icon-btn" onclick="zoomCanvas(0.15)">➕</button>
                     <button class="icon-btn" onclick="zoomCanvas(-0.15)">➖</button>
                 </div>
             </div>
             
-            <!-- Import/Save -->
-            <div class="toolbar-group btn-row">
+            <!-- Stacked Action Buttons (Import, Save, Reset, Clear) -->
+            <div class="toolbar-group btn-col">
                 <input type="file" id="fileUpload" accept="image/jpeg, image/png, application/pdf" style="display: none;">
-                <button class="action-btn" onclick="document.getElementById('fileUpload').click()">📁 Import</button>
-                <button class="action-btn" onclick="saveArtwork()">💾 Save</button>
-            </div>
-            
-            <!-- Reset Page & Clear Color Stacked -->
-            <div class="toolbar-group btn-row">
+                <button class="action-btn import-btn" onclick="document.getElementById('fileUpload').click()">
+                    <span>📁</span><span class="hide-on-slim">Import</span>
+                </button>
+                <button class="action-btn save-btn" onclick="saveArtwork()">
+                    <span>💾</span><span class="hide-on-slim">Save</span>
+                </button>
                 <button class="action-btn reset-page-btn" onclick="clearImage()" title="Remove Imported Image">
                     <span>❌</span><span class="hide-on-slim">Reset Page</span>
                 </button>
@@ -346,7 +347,6 @@
             document.getElementById('wheelInner').style.backgroundColor = hex;
         }
 
-        // Fix iPad Safari native color picker click simulation
         function triggerColorPicker() {
             const picker = document.getElementById('nativeColorPicker');
             picker.click();
