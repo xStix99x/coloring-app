@@ -600,6 +600,15 @@
             exportCtx.globalCompositeOperation = 'multiply'; exportCtx.drawImage(topCanvas, 0, 0);
             const link = document.createElement('a'); link.download = 'Coloring-Page.png'; link.href = exportCanvas.toDataURL('image/png'); link.click();
         }
+        
+        // Register Service Worker for Offline Support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registered!', reg))
+            .catch(err => console.log('Service Worker registration failed:', err));
+    });
+}
     </script>
 </body>
 </html>
