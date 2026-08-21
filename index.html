@@ -132,7 +132,7 @@
                 <button onclick="document.getElementById('fileUpload').click()">📁 Import</button>
                 <button onclick="saveArtwork()">💾 Save</button>
                 <button onclick="clearImage()" title="Remove Image" style="background: #5856d6; flex-basis: 15%;">❌</button>
-                <button onclick="clearCanvas()" title="Clear Colors" style="background: #ff453a; flex-basis: 15%;">🗑️</button>
+                <button onclick="clearCanvas()" title="Clear Colors" style="background: #ff453a; flex-basis: 30%;">🧹 Clear</button>
             </div>
         </div>
     </div>
@@ -173,7 +173,7 @@
         function resetInactivityTimer() {
             if (toolbarEl.classList.contains('hidden')) return;
             clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => { hideToolbar(); }, 5000); // 5 seconds
+            inactivityTimer = setTimeout(() => { hideToolbar(); }, 5000);
         }
 
         function hideToolbar() {
@@ -220,17 +220,17 @@
         }
         updateRecentColorsUI();
 
-        // --- Crayon Smudgy Noise Generation ---
+        // --- Crayon Smudgy Noise Generation (Balanced Hole Size) ---
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
         nCtx.filter = 'blur(1.5px)';
-        for (let x = 0; x < 300; x += 5) {
-            for (let y = 0; y < 300; y += 5) {
-                if (Math.random() > 0.85) {
+        for (let x = 0; x < 300; x += 4) {
+            for (let y = 0; y < 300; y += 4) {
+                if (Math.random() > 0.82) {
                     nCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     nCtx.beginPath();
-                    nCtx.arc(x, y, Math.random() * 2.5 + 1.0, 0, Math.PI * 2); 
+                    nCtx.arc(x, y, Math.random() * 1.8 + 0.8, 0, Math.PI * 2); 
                     nCtx.fill();
                 }
             }
@@ -279,13 +279,11 @@
         function undo() { if (undoStack.length > 0) { redoStack.push(drawCanvas.toDataURL()); restoreState(undoStack.pop()); } }
         function redo() { if (redoStack.length > 0) { undoStack.push(drawCanvas.toDataURL()); restoreState(redoStack.pop()); } }
 
-        // 🗑️ Removes color from the page
         function clearCanvas() {
             saveState();
             drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
         }
 
-        // ❌ Removes the imported image and goes back to blank canvas
         function clearImage() {
             saveState();
             topCtx.clearRect(0, 0, topCanvas.width, topCanvas.height);
@@ -336,7 +334,6 @@
         viewport.addEventListener('pointerdown', (e) => {
             activeTouches.set(e.pointerId, e);
 
-            // If 3 fingers are down, cancel drawing and switch to panning mode
             if (activeTouches.size === 3) {
                 if (isDrawing) {
                     isDrawing = false;
@@ -347,7 +344,6 @@
                 return;
             }
 
-            // 1 or 2 fingers down -> If 1 finger and not currently panning, draw
             if (activeTouches.size === 1) {
                 activePointerId = e.pointerId;
                 saveState();
@@ -370,7 +366,6 @@
                 activeTouches.set(e.pointerId, e);
             }
 
-            // 3 fingers moving -> Pan the workspace
             if (activeTouches.size >= 3) {
                 const touches = Array.from(activeTouches.values());
                 let avgMX = 0, avgMY = 0;
@@ -384,7 +379,6 @@
                 return;
             }
 
-            // 1 finger moving -> Draw (ignored if 2 or 3 fingers are active)
             if (isDrawing && e.pointerId === activePointerId && activeTouches.size === 1) {
                 strokePoints.push(getCanvasCoords(e));
                 renderDraft();
