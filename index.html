@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- These tags enable full-screen mode when saved to the iOS Home Screen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -21,7 +22,7 @@
             background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             padding: 20px; border-radius: 16px; border: 1px solid #333;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px;
-            pointer-events: auto; transition: transform 0.3s ease; width: 220px;
+            pointer-events: auto; transition: transform 0.3s ease; width: 260px;
         }
         
         #toolbar.hidden { transform: translateX(-150%); }
@@ -33,13 +34,13 @@
             pointer-events: auto; cursor: pointer; z-index: 99; border: 1px solid #444; color: white;
         }
 
+        /* Tools */
         .tool-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; }
-        
-        button { padding: 10px; flex-grow: 1; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 14px;}
+        button { padding: 10px 5px; flex-grow: 1; flex-basis: 30%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px;}
         button.active { background: #0a84ff; color: white; font-weight: bold; }
         button:active { transform: scale(0.95); }
         
-        /* Color Picker & Recent Swatches */
+        /* Color Picker & Codes */
         .color-section { display: flex; flex-direction: column; gap: 8px; }
         .color-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #a1a1a6; }
         
@@ -48,22 +49,28 @@
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
         
-        #recentColors { display: flex; gap: 6px; flex-wrap: wrap; }
-        .swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
+        #recentColors { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
+        .swatch { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
         .swatch:active { transform: scale(0.8); }
 
-        /* Labeled Sliders */
+        .manual-color-codes { display: flex; gap: 5px; justify-content: space-between; }
+        .manual-color-codes input {
+            background: #2c2c2e; border: 1px solid #444; color: white; border-radius: 4px; 
+            padding: 4px; font-size: 11px; text-align: center;
+        }
+        #hexInput { width: 60px; }
+        .rgb-input { width: 40px; }
+
+        /* Sliders */
         .slider-group { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: #a1a1a6; }
         .slider-group label { display: flex; justify-content: space-between; }
         input[type="range"] { width: 100%; accent-color: #0a84ff; }
 
         /* Workspace */
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
-        
         #workspace {
             position: absolute; top: 0; left: 0; width: 1200px; height: 1600px;
-            background: white; transform-origin: 0 0;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            background: white; transform-origin: 0 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
         
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
@@ -83,28 +90,34 @@
                 <div class="color-header">
                     <span>Color</span>
                     <div>
-                        <button onclick="undo()" style="padding: 4px 8px;">↩️</button>
-                        <button onclick="redo()" style="padding: 4px 8px;">↪️</button>
+                        <button onclick="undo()" style="padding: 4px 8px; flex-basis: auto;">↩️</button>
+                        <button onclick="redo()" style="padding: 4px 8px; flex-basis: auto;">↪️</button>
                     </div>
                 </div>
                 <div class="color-inputs">
                     <input type="color" id="colorPicker" value="#0a84ff">
                     <div id="recentColors"></div>
                 </div>
+                <div class="manual-color-codes">
+                    <input type="text" id="hexInput" value="#0A84FF" maxlength="7">
+                    <input type="number" id="rInput" class="rgb-input" value="10" min="0" max="255">
+                    <input type="number" id="gInput" class="rgb-input" value="132" min="0" max="255">
+                    <input type="number" id="bInput" class="rgb-input" value="255" min="0" max="255">
+                </div>
             </div>
             
             <div class="tool-row">
-                <button class="tool-btn active" data-tool="pen">Pen</button>
-                <button class="tool-btn" data-tool="marker">Marker</button>
-                <button class="tool-btn" data-tool="brush">Brush</button>
-                <button class="tool-btn" data-tool="crayon">Crayon</button>
-                <button class="tool-btn" data-tool="bucket">Bucket</button>
-                <button class="tool-btn" data-tool="eraser">Eraser</button>
+                <button class="tool-btn active" data-tool="pen">🖋️ Pen</button>
+                <button class="tool-btn" data-tool="marker">🖊️ Marker</button>
+                <button class="tool-btn" data-tool="brush">🖌️ Brush</button>
+                <button class="tool-btn" data-tool="crayon">🖍️ Crayon</button>
+                <button class="tool-btn" data-tool="bucket">🪣 Bucket</button>
+                <button class="tool-btn" data-tool="eraser">🧽 Eraser</button>
             </div>
             
             <div class="slider-group">
                 <label><span>Thickness</span> <span id="valThick">5</span></label>
-                <input type="range" id="thicknessSlider" min="1" max="800" value="5">
+                <input type="range" id="thicknessSlider" min="1" max="500" value="5">
             </div>
             <div class="slider-group">
                 <label><span>Opacity</span> <span id="valOpac">100%</span></label>
@@ -112,14 +125,14 @@
             </div>
             <div class="slider-group">
                 <label><span>Zoom</span> <span id="valZoom">100%</span></label>
-                <input type="range" id="zoomSlider" min="10" max="500" value="100">
+                <input type="range" id="zoomSlider" min="10" max="200" value="100">
             </div>
             
             <div class="tool-row" style="margin-top: 5px;">
                 <input type="file" id="fileUpload" accept="image/jpeg, image/png, application/pdf" style="display: none;">
                 <button onclick="document.getElementById('fileUpload').click()">📁 Import</button>
                 <button onclick="saveArtwork()">💾 Save</button>
-                <button onclick="clearCanvas()" style="background: #ff453a;">🗑️</button>
+                <button onclick="clearCanvas()" style="background: #ff453a; flex-basis: 20%;">🗑️</button>
             </div>
         </div>
     </div>
@@ -149,50 +162,85 @@
         let currentThickness = 5;
         let currentOpacity = 1.0;
 
+        // --- Color Input Logic (Hex & RGB) ---
+        function hexToRgbObj(hex) {
+            const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+            return {r, g, b};
+        }
+        function rgbToHex(r, g, b) {
+            return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+        }
+
+        function updateColorFromPicker(hex) {
+            currentColor = hex;
+            document.getElementById('colorPicker').value = hex;
+            document.getElementById('hexInput').value = hex.toUpperCase();
+            const rgb = hexToRgbObj(hex);
+            document.getElementById('rInput').value = rgb.r;
+            document.getElementById('gInput').value = rgb.g;
+            document.getElementById('bInput').value = rgb.b;
+            addRecentColor(hex);
+        }
+
+        document.getElementById('hexInput').addEventListener('change', (e) => {
+            let hex = e.target.value;
+            if (!hex.startsWith('#')) hex = '#' + hex;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) updateColorFromPicker(hex);
+        });
+
+        const rgbInputs = ['rInput', 'gInput', 'bInput'];
+        rgbInputs.forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                let r = Math.min(255, Math.max(0, document.getElementById('rInput').value || 0));
+                let g = Math.min(255, Math.max(0, document.getElementById('gInput').value || 0));
+                let b = Math.min(255, Math.max(0, document.getElementById('bInput').value || 0));
+                updateColorFromPicker(rgbToHex(r, g, b));
+            });
+        });
+
         // --- Recent Colors UI ---
-        let recentColors = ['#0a84ff', '#ff3b30', '#34c759', '#ffcc00', '#af52de'];
+        let recentColors = ['#0A84FF', '#FF3B30', '#34C759', '#FFCC00', '#AF52DE', '#FF9500', '#5AC8FA', '#000000'];
         
         function updateRecentColorsUI() {
             const container = document.getElementById('recentColors');
             container.innerHTML = '';
             recentColors.forEach(c => {
                 const div = document.createElement('div');
-                div.className = 'swatch';
-                div.style.backgroundColor = c;
-                div.onclick = () => {
-                    currentColor = c;
-                    document.getElementById('colorPicker').value = c;
-                    addRecentColor(c);
-                };
+                div.className = 'swatch'; div.style.backgroundColor = c;
+                div.onclick = () => updateColorFromPicker(c);
                 container.appendChild(div);
             });
         }
         
         function addRecentColor(c) {
-            recentColors = recentColors.filter(col => col !== c); // Remove duplicate
-            recentColors.unshift(c); // Add to front
-            if (recentColors.length > 5) recentColors.pop(); // Keep max 5
+            const upC = c.toUpperCase();
+            recentColors = recentColors.filter(col => col.toUpperCase() !== upC); 
+            recentColors.unshift(upC); 
+            if (recentColors.length > 8) recentColors.pop(); 
             updateRecentColorsUI();
         }
+        updateRecentColorsUI();
 
-        // --- Crayon Noise Texture Generation (Chunkier & Subtler) ---
+        // --- Crayon Smudgy Noise Generation ---
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
-        for (let x = 0; x < 300; x += 2) {
-            for (let y = 0; y < 300; y += 2) {
-                if (Math.random() > 0.88) { // Only 12% holes, making it denser/thicker
-                    nCtx.fillStyle = 'rgba(255, 255, 255, 1)';
-                    nCtx.fillRect(x, y, 2, 2); // Chunkier holes
+        nCtx.filter = 'blur(1.5px)'; // Makes the noise smudgy instead of pixely
+        for (let x = 0; x < 300; x += 4) {
+            for (let y = 0; y < 300; y += 4) {
+                if (Math.random() > 0.6) {
+                    nCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    nCtx.beginPath();
+                    nCtx.arc(x, y, Math.random() * 2.5 + 0.5, 0, Math.PI * 2);
+                    nCtx.fill();
                 }
             }
         }
         const crayonPattern = draftCtx.createPattern(noiseCanvas, 'repeat');
+        let strokePatternOffset = {x: 0, y: 0}; // Randomizes per stroke so layering fills holes
 
         // --- UI & Controls ---
-        function toggleToolbar() {
-            document.getElementById('toolbar').classList.toggle('hidden');
-        }
+        function toggleToolbar() { document.getElementById('toolbar').classList.toggle('hidden'); }
 
         document.querySelectorAll('.tool-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -202,28 +250,19 @@
             });
         });
 
-        document.getElementById('colorPicker').addEventListener('change', (e) => {
-            currentColor = e.target.value;
-            addRecentColor(currentColor);
-        });
+        document.getElementById('colorPicker').addEventListener('change', (e) => updateColorFromPicker(e.target.value));
         document.getElementById('colorPicker').addEventListener('input', (e) => currentColor = e.target.value);
         
         document.getElementById('thicknessSlider').addEventListener('input', (e) => {
-            currentThickness = e.target.value;
-            document.getElementById('valThick').innerText = currentThickness;
+            currentThickness = e.target.value; document.getElementById('valThick').innerText = currentThickness;
         });
         
         document.getElementById('opacitySlider').addEventListener('input', (e) => {
-            currentOpacity = e.target.value / 100;
-            document.getElementById('valOpac').innerText = e.target.value + '%';
+            currentOpacity = e.target.value / 100; document.getElementById('valOpac').innerText = e.target.value + '%';
         });
 
-        // Initialize UI
-        updateRecentColorsUI();
-
         // --- Undo / Redo System ---
-        let undoStack = [];
-        let redoStack = [];
+        let undoStack = []; let redoStack = [];
 
         function saveState() {
             undoStack.push(drawCanvas.toDataURL());
@@ -235,8 +274,7 @@
             const img = new Image();
             img.onload = () => {
                 drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-                drawCtx.fillStyle = '#ffffff';
-                drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+                drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
                 drawCtx.drawImage(img, 0, 0);
             };
             img.src = imgDataUrl;
@@ -247,16 +285,13 @@
 
         function clearCanvas() {
             saveState();
-            drawCtx.fillStyle = '#ffffff';
-            drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+            drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
         }
 
         // --- Pan, Zoom, and Workspace Sizing ---
-        let scale = 1;
-        let panX = 0, panY = 0;
+        let scale = 1; let panX = 0, panY = 0;
         let activeTouches = new Map();
-        let initialPinchDistance = null;
-        let initialScale = 1;
+        let initialPinchDistance = null; let initialScale = 1;
 
         function updateTransform() {
             workspace.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
@@ -265,8 +300,7 @@
         }
 
         document.getElementById('zoomSlider').addEventListener('input', (e) => {
-            scale = e.target.value / 100;
-            updateTransform();
+            scale = e.target.value / 100; updateTransform();
         });
 
         function resizeWorkspace(w, h) {
@@ -274,18 +308,15 @@
             drawCanvas.width = w; drawCanvas.height = h;
             draftCanvas.width = w; draftCanvas.height = h;
             topCanvas.width = w; topCanvas.height = h;
-            
             clearCanvas();
 
             const rect = viewport.getBoundingClientRect();
             scale = Math.min((rect.width - 40) / w, (rect.height - 40) / h);
-            scale = Math.max(0.1, Math.min(scale, 5));
+            scale = Math.max(0.1, Math.min(scale, 2)); // Capped at 200% max initially
             
-            panX = (rect.width - w * scale) / 2;
-            panY = (rect.height - h * scale) / 2;
+            panX = (rect.width - w * scale) / 2; panY = (rect.height - h * scale) / 2;
             updateTransform();
         }
-        
         resizeWorkspace(1200, 1600);
 
         function getCanvasCoords(e) {
@@ -294,13 +325,11 @@
         }
 
         // --- Input Handling & Drawing Logic ---
-        let isDrawing = false;
-        let strokePoints = [];
+        let isDrawing = false; let strokePoints = [];
 
         viewport.addEventListener('pointerdown', (e) => {
             if (e.pointerType === 'touch') {
-                activeTouches.set(e.pointerId, e);
-                return;
+                activeTouches.set(e.pointerId, e); return;
             }
 
             if (e.pointerType === 'pen' || e.button === 0) {
@@ -308,12 +337,12 @@
                 const coords = getCanvasCoords(e);
                 
                 if (currentTool === 'bucket') {
-                    floodFill(Math.floor(coords.x), Math.floor(coords.y), currentColor);
-                    return;
+                    floodFill(Math.floor(coords.x), Math.floor(coords.y), currentColor); return;
                 }
 
-                isDrawing = true;
-                strokePoints = [coords];
+                isDrawing = true; strokePoints = [coords];
+                // Randomize pattern offset so layering crayon fills the holes!
+                strokePatternOffset = { x: Math.random() * 300, y: Math.random() * 300 };
                 renderDraft();
             }
         });
@@ -324,27 +353,22 @@
                 const touches = Array.from(activeTouches.values());
                 
                 if (touches.length === 1) { 
-                    panX += e.movementX; panY += e.movementY;
-                    updateTransform();
+                    panX += e.movementX; panY += e.movementY; updateTransform();
                 } else if (touches.length === 2) { 
                     const dx = touches[0].clientX - touches[1].clientX;
                     const dy = touches[0].clientY - touches[1].clientY;
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (!initialPinchDistance) {
-                        initialPinchDistance = distance; initialScale = scale;
-                    } else {
-                        scale = Math.min(Math.max(0.1, initialScale * (distance / initialPinchDistance)), 5);
+                    if (!initialPinchDistance) { initialPinchDistance = distance; initialScale = scale; } 
+                    else {
+                        scale = Math.min(Math.max(0.1, initialScale * (distance / initialPinchDistance)), 2); // Capped at 2 (200%)
                         updateTransform();
                     }
                 }
                 return;
             }
 
-            if (isDrawing) {
-                strokePoints.push(getCanvasCoords(e));
-                renderDraft();
-            }
+            if (isDrawing) { strokePoints.push(getCanvasCoords(e)); renderDraft(); }
         });
 
         function endPointer(e) {
@@ -353,8 +377,7 @@
                 if (activeTouches.size < 2) initialPinchDistance = null;
             } else if (isDrawing) {
                 isDrawing = false;
-                drawCtx.globalAlpha = 1;
-                drawCtx.drawImage(draftCanvas, 0, 0);
+                drawCtx.globalAlpha = 1; drawCtx.drawImage(draftCanvas, 0, 0);
                 draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
                 strokePoints = [];
             }
@@ -368,65 +391,52 @@
             draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
             if (strokePoints.length === 0) return;
 
-            draftCtx.lineCap = 'round';
-            draftCtx.lineJoin = 'round';
-            draftCtx.strokeStyle = currentColor;
-            draftCtx.globalCompositeOperation = 'source-over';
+            draftCtx.lineCap = 'round'; draftCtx.lineJoin = 'round';
+            draftCtx.strokeStyle = currentColor; draftCtx.globalCompositeOperation = 'source-over';
 
             if (currentTool === 'eraser') {
-                draftCtx.lineWidth = currentThickness;
-                draftCtx.strokeStyle = '#ffffff';
-                draftCtx.globalAlpha = 1;
-                draftCtx.shadowBlur = 0;
-                drawSmoothPath(draftCtx);
+                draftCtx.lineWidth = currentThickness; draftCtx.strokeStyle = '#ffffff';
+                draftCtx.globalAlpha = 1; draftCtx.shadowBlur = 0; drawSmoothPath(draftCtx);
             } 
             else if (currentTool === 'marker') {
-                draftCtx.lineWidth = currentThickness;
-                draftCtx.globalAlpha = currentOpacity * 0.7; // Darkens upon overlapping strokes
-                draftCtx.shadowBlur = Math.max(2, currentThickness * 0.15); // Fuzzy edges
-                draftCtx.shadowColor = currentColor;
+                draftCtx.lineWidth = currentThickness; draftCtx.globalAlpha = currentOpacity * 0.7;
+                draftCtx.shadowBlur = Math.max(2, currentThickness * 0.15); draftCtx.shadowColor = currentColor;
                 drawSmoothPath(draftCtx); 
             } 
             else if (currentTool === 'brush') {
-                draftCtx.shadowBlur = 0;
-                draftCtx.globalAlpha = currentOpacity * 0.25;
-                let numStreaks = 5;
-                let spread = currentThickness * 0.5;
+                draftCtx.shadowBlur = 0; draftCtx.globalAlpha = currentOpacity * 0.25;
+                let numStreaks = 5; let spread = currentThickness * 0.5;
                 for (let i = 0; i < numStreaks; i++) {
                     let offset = (i - (numStreaks - 1) / 2) * (spread / numStreaks);
-                    draftCtx.save();
-                    draftCtx.translate(offset, offset * 0.5); // Slight angle for bristle effect
+                    draftCtx.save(); draftCtx.translate(offset, offset * 0.5);
                     draftCtx.lineWidth = Math.max(1, currentThickness * 0.4);
-                    drawSmoothPath(draftCtx);
-                    draftCtx.restore();
+                    drawSmoothPath(draftCtx); draftCtx.restore();
                 }
             } 
             else if (currentTool === 'crayon') {
                 draftCtx.lineWidth = currentThickness;
-                draftCtx.globalAlpha = currentOpacity;
-                draftCtx.shadowBlur = 0;
+                draftCtx.globalAlpha = currentOpacity * 0.95;
+                draftCtx.shadowBlur = 2; // Extra smudginess for crayon edge
+                draftCtx.shadowColor = currentColor;
                 drawSmoothPath(draftCtx);
                 
                 draftCtx.globalCompositeOperation = 'destination-out';
+                const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y);
+                crayonPattern.setTransform(matrix);
                 draftCtx.fillStyle = crayonPattern;
                 draftCtx.fillRect(0, 0, draftCanvas.width, draftCanvas.height);
             } 
             else { 
-                // Pen
-                draftCtx.lineWidth = currentThickness;
-                draftCtx.globalAlpha = currentOpacity;
-                draftCtx.shadowBlur = 0;
-                drawSmoothPath(draftCtx);
+                draftCtx.lineWidth = currentThickness; draftCtx.globalAlpha = currentOpacity;
+                draftCtx.shadowBlur = 0; drawSmoothPath(draftCtx);
             }
         }
 
         function drawSmoothPath(ctx) {
             ctx.beginPath();
             if (strokePoints.length < 3) {
-                ctx.moveTo(strokePoints[0].x, strokePoints[0].y);
-                ctx.lineTo(strokePoints[0].x + 0.1, strokePoints[0].y);
-                ctx.stroke();
-                return;
+                ctx.moveTo(strokePoints[0].x, strokePoints[0].y); ctx.lineTo(strokePoints[0].x + 0.1, strokePoints[0].y);
+                ctx.stroke(); return;
             }
             ctx.moveTo(strokePoints[0].x, strokePoints[0].y);
             for (let i = 1; i < strokePoints.length - 2; i++) {
@@ -441,17 +451,9 @@
             ctx.stroke();
         }
 
-        // --- Smart Flood Fill (Paint Bucket) ---
-        function hexToRgba(hex) {
-            const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-            return [r, g, b, 255];
-        }
-        
-        // Added a tolerance parameter to allow filling into anti-aliased gray pixels
+        // --- Smart Flood Fill ---
         function matchColor(data, pos, color, tol = 60) {
-            return Math.abs(data[pos] - color[0]) <= tol && 
-                   Math.abs(data[pos+1] - color[1]) <= tol && 
-                   Math.abs(data[pos+2] - color[2]) <= tol;
+            return Math.abs(data[pos] - color[0]) <= tol && Math.abs(data[pos+1] - color[1]) <= tol && Math.abs(data[pos+2] - color[2]) <= tol;
         }
 
         function floodFill(startX, startY, fillColorHex) {
@@ -459,52 +461,35 @@
             if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
 
             const compCanvas = document.createElement('canvas');
-            compCanvas.width = w; compCanvas.height = h;
-            const compCtx = compCanvas.getContext('2d');
-            compCtx.drawImage(drawCanvas, 0, 0);
-            compCtx.globalCompositeOperation = 'multiply';
-            compCtx.drawImage(topCanvas, 0, 0);
+            compCanvas.width = w; compCanvas.height = h; const compCtx = compCanvas.getContext('2d');
+            compCtx.drawImage(drawCanvas, 0, 0); compCtx.globalCompositeOperation = 'multiply'; compCtx.drawImage(topCanvas, 0, 0);
 
-            const compData = compCtx.getImageData(0, 0, w, h).data;
-            const drawImgData = drawCtx.getImageData(0, 0, w, h);
-            const data = drawImgData.data;
-
+            const compData = compCtx.getImageData(0, 0, w, h).data, drawImgData = drawCtx.getImageData(0, 0, w, h), data = drawImgData.data;
             const startPos = (startY * w + startX) * 4;
             const startColor = [compData[startPos], compData[startPos+1], compData[startPos+2]];
-            const fillColor = hexToRgba(fillColorHex);
+            const fillColor = [parseInt(fillColorHex.slice(1,3),16), parseInt(fillColorHex.slice(3,5),16), parseInt(fillColorHex.slice(5,7),16)];
 
-            // Don't fill if clicking directly on a dark black line
             if (startColor[0] < 80 && startColor[1] < 80 && startColor[2] < 80) return; 
-            // Strict match for stopping if it's already the exact target color
             if (matchColor(data, startPos, fillColor, 0)) return;
 
             const pixelStack = [[startX, startY]];
-            
             while(pixelStack.length) {
                 let newPos = pixelStack.pop(), x = newPos[0], y = newPos[1];
                 let pixelPos = (y * w + x) * 4, reachLeft = false, reachRight = false;
                 
-                // Climb up while color matches within tolerance
                 while(y-- >= 0 && matchColor(compData, pixelPos, startColor, 60)) { pixelPos -= w * 4; }
                 pixelPos += w * 4; ++y;
                 
-                // Climb down
                 while(y++ < h - 1 && matchColor(compData, pixelPos, startColor, 60)) {
-                    data[pixelPos] = fillColor[0]; data[pixelPos+1] = fillColor[1]; 
-                    data[pixelPos+2] = fillColor[2]; data[pixelPos+3] = Math.round(currentOpacity * 255);
-                    
-                    // Update composite immediately so algorithm knows we visited here
-                    compData[pixelPos] = fillColor[0]; compData[pixelPos+1] = fillColor[1]; 
-                    compData[pixelPos+2] = fillColor[2];
+                    data[pixelPos] = fillColor[0]; data[pixelPos+1] = fillColor[1]; data[pixelPos+2] = fillColor[2]; data[pixelPos+3] = Math.round(currentOpacity * 255);
+                    compData[pixelPos] = fillColor[0]; compData[pixelPos+1] = fillColor[1]; compData[pixelPos+2] = fillColor[2];
 
                     if (x > 0) {
-                        if (matchColor(compData, pixelPos - 4, startColor, 60)) {
-                            if (!reachLeft) { pixelStack.push([x - 1, y]); reachLeft = true; }
+                        if (matchColor(compData, pixelPos - 4, startColor, 60)) { if (!reachLeft) { pixelStack.push([x - 1, y]); reachLeft = true; }
                         } else if (reachLeft) { reachLeft = false; }
                     }
                     if (x < w - 1) {
-                        if (matchColor(compData, pixelPos + 4, startColor, 60)) {
-                            if (!reachRight) { pixelStack.push([x + 1, y]); reachRight = true; }
+                        if (matchColor(compData, pixelPos + 4, startColor, 60)) { if (!reachRight) { pixelStack.push([x + 1, y]); reachRight = true; }
                         } else if (reachRight) { reachRight = false; }
                     }
                     pixelPos += w * 4;
@@ -513,48 +498,28 @@
             drawCtx.putImageData(drawImgData, 0, 0);
         }
 
-        // --- Dynamic Import ---
+        // --- Import & Export ---
         document.getElementById('fileUpload').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
 
             if (file.type === 'application/pdf') {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                const page = await pdf.getPage(1);
-                
-                const viewport = page.getViewport({ scale: 2 });
+                const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                const page = await pdf.getPage(1); const viewport = page.getViewport({ scale: 2 });
                 resizeWorkspace(viewport.width, viewport.height);
-                
-                await page.render({ canvasContext: topCtx, viewport: viewport }).promise;
-                saveState();
+                await page.render({ canvasContext: topCtx, viewport: viewport }).promise; saveState();
             } else {
                 const img = new Image();
-                img.onload = () => {
-                    resizeWorkspace(img.width, img.height);
-                    topCtx.drawImage(img, 0, 0);
-                    saveState();
-                };
+                img.onload = () => { resizeWorkspace(img.width, img.height); topCtx.drawImage(img, 0, 0); saveState(); };
                 img.src = URL.createObjectURL(file);
             }
         });
 
         function saveArtwork() {
             const exportCanvas = document.createElement('canvas');
-            exportCanvas.width = drawCanvas.width; exportCanvas.height = drawCanvas.height;
-            const exportCtx = exportCanvas.getContext('2d');
-
-            exportCtx.fillStyle = '#ffffff';
-            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-            exportCtx.drawImage(drawCanvas, 0, 0);
-            
-            exportCtx.globalCompositeOperation = 'multiply';
-            exportCtx.drawImage(topCanvas, 0, 0);
-
-            const link = document.createElement('a');
-            link.download = 'Coloring-Page.png';
-            link.href = exportCanvas.toDataURL('image/png');
-            link.click();
+            exportCanvas.width = drawCanvas.width; exportCanvas.height = drawCanvas.height; const exportCtx = exportCanvas.getContext('2d');
+            exportCtx.fillStyle = '#ffffff'; exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height); exportCtx.drawImage(drawCanvas, 0, 0);
+            exportCtx.globalCompositeOperation = 'multiply'; exportCtx.drawImage(topCanvas, 0, 0);
+            const link = document.createElement('a'); link.download = 'Coloring-Page.png'; link.href = exportCanvas.toDataURL('image/png'); link.click();
         }
     </script>
 </body>
