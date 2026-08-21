@@ -24,7 +24,7 @@
         
         /* 🛠️ Hidden Wrench Tab */
         #toggle-ui {
-            position: absolute; 
+            position: absolute; top: 20px;
             background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; font-size: 22px;
@@ -34,74 +34,57 @@
         }
         #toggle-ui.visible { opacity: 1; pointer-events: auto; }
         
-        #toggle-ui[data-side="left"] { top: 20px; left: 0; border-radius: 0 16px 16px 0; border-left: none; transform: translateX(-100%); }
+        #toggle-ui[data-side="left"] { left: 0; border-radius: 0 16px 16px 0; border-left: none; transform: translateX(-100%); }
         #toggle-ui.visible[data-side="left"] { transform: translateX(0); }
-        #toggle-ui[data-side="right"] { top: 20px; right: 0; border-radius: 16px 0 0 16px; border-right: none; transform: translateX(100%); }
+        #toggle-ui[data-side="right"] { right: 0; border-radius: 16px 0 0 16px; border-right: none; transform: translateX(100%); }
         #toggle-ui.visible[data-side="right"] { transform: translateX(0); }
-        #toggle-ui[data-side="top"] { top: 0; left: 50%; margin-left:-27px; border-radius: 0 0 16px 16px; border-top: none; transform: translateY(-100%); }
-        #toggle-ui.visible[data-side="top"] { transform: translateY(0); }
-        #toggle-ui[data-side="bottom"] { bottom: 0; left: 50%; margin-left:-27px; border-radius: 16px 16px 0 0; border-bottom: none; transform: translateY(100%); }
-        #toggle-ui.visible[data-side="bottom"] { transform: translateY(0); }
 
         /* Toolbar Base */
         #toolbar {
-            position: absolute; 
+            position: absolute; top: 0; bottom: 0; width: 260px; height: 100vh;
             background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; gap: 10px; scrollbar-width: none;
-            pointer-events: auto; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease, height 0.3s ease, padding 0.3s ease;
+            display: flex; flex-direction: column; gap: 10px; overflow: hidden; padding: 15px 12px;
+            pointer-events: auto; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease;
             z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.6);
         }
-        #toolbar::-webkit-scrollbar { display: none; }
         
-        /* Toolbar Orientation - VERTICAL */
-        #toolbar[data-side="left"], #toolbar[data-side="right"] {
-            top: 0; bottom: 0; width: 260px; height: 100vh; flex-direction: column; overflow: hidden; padding: 15px 12px;
-        }
         #toolbar[data-side="left"] { left: 0; border-right: 1px solid #333; border-radius: 0 16px 16px 0; transform: translateX(0); }
         #toolbar.hidden[data-side="left"] { transform: translateX(-150%); }
         #toolbar[data-side="right"] { right: 0; border-left: 1px solid #333; border-radius: 16px 0 0 16px; transform: translateX(0); }
         #toolbar.hidden[data-side="right"] { transform: translateX(150%); }
 
-        /* Toolbar Orientation - HORIZONTAL */
-        #toolbar[data-side="top"], #toolbar[data-side="bottom"] {
-            left: 0; right: 0; width: 100vw; height: auto; max-height: 35vh; flex-direction: row; flex-wrap: wrap; overflow-y: auto; overflow-x: hidden; padding: 12px 15px; align-items: flex-start; justify-content: space-evenly;
-        }
-        #toolbar[data-side="top"] { top: 0; border-bottom: 1px solid #333; border-radius: 0 0 16px 16px; transform: translateY(0); }
-        #toolbar.hidden[data-side="top"] { transform: translateY(-150%); }
-        #toolbar[data-side="bottom"] { bottom: 0; border-top: 1px solid #333; border-radius: 16px 16px 0 0; transform: translateY(0); }
-        #toolbar.hidden[data-side="bottom"] { transform: translateY(150%); }
-
-        /* SLIM Mode Container Overrides */
-        #toolbar.slim { flex-wrap: nowrap; overflow: hidden; }
-        #toolbar.slim[data-side="left"], #toolbar.slim[data-side="right"] { width: 72px; padding: 15px 6px; align-items: center; gap: 8px; }
-        #toolbar.slim[data-side="top"], #toolbar.slim[data-side="bottom"] { height: 72px; overflow-x: auto; flex-direction: row; align-items: center; justify-content: flex-start; padding: 8px 12px; gap: 15px; }
+        /* SLIM Mode Overrides */
+        #toolbar.slim { width: 68px; padding: 15px 6px; align-items: center; gap: 8px; }
         #toolbar.slim .hide-on-slim { display: none !important; }
 
-        .toolbar-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+        .toolbar-group { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center; }
 
-        /* Header (Gear, Minus, Lock) - Row in Full, Col in Slim */
-        .toolbar-header { display: flex; flex-direction: row; justify-content: flex-start; align-items: center; gap: 8px; flex-shrink: 0; }
-        #toolbar.slim[data-side="left"] .toolbar-header, #toolbar.slim[data-side="right"] .toolbar-header { flex-direction: column; margin-bottom: 5px; }
+        /* Header Row (Gear, Minimize, Lock) */
+        .toolbar-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; flex-shrink: 0; }
+        #toolbar.slim .toolbar-header { flex-direction: column; gap: 8px; margin-bottom: 2px; }
         
-        .icon-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; color: white; transition: 0.2s; flex-shrink: 0; }
+        .icon-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 50%; width: 38px; height: 38px; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; color: white; transition: 0.2s; flex-shrink: 0; }
         .icon-btn:active { transform: scale(0.9); }
-        #toolbar.slim .icon-btn { width: 34px; height: 34px; font-size: 16px; }
+        #toolbar.slim .icon-btn { width: 52px; height: 36px; border-radius: 8px; font-size: 16px; }
         #lockBtn.locked { background: #ff3b30; border-color: #ff3b30; }
 
         /* Color Row (Wheel + Swatches) */
-        .color-row { display: flex; flex-direction: row; gap: 10px; align-items: center; width: 100%; }
-        #toolbar.slim[data-side="left"] .color-row, #toolbar.slim[data-side="right"] .color-row { flex-direction: column; gap: 6px; }
+        .color-row { display: flex; flex-direction: row; gap: 8px; align-items: center; width: 100%; }
+        #toolbar.slim .color-row { flex-direction: column; gap: 6px; }
         
         /* Rainbow Color Wheel Button */
         #colorWheelBtn {
-            width: 44px; height: 44px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+            width: 42px; height: 42px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
             background: conic-gradient(from 0deg, red, yellow, lime, cyan, blue, magenta, red);
-            padding: 3px; border: none; outline: none; transition: 0.2s;
+            padding: 3px; border: none; outline: none; transition: 0.2s; position: relative;
         }
         #colorWheelBtn:active { transform: scale(0.9); }
         #colorWheelBtn .inner-color { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #121212; background: #0a84ff; }
-        
-        #toolbar.slim #colorWheelBtn { width: 36px; height: 36px; padding: 2px; }
+        #toolbar.slim #colorWheelBtn { width: 52px; height: 36px; border-radius: 8px; }
+        #toolbar.slim #colorWheelBtn .inner-color { border-radius: 6px; }
+
+        /* Hidden Native Picker Overlay */
+        #nativeColorPicker { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
 
         #paletteSwatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; }
         #toolbar.slim #paletteSwatches { grid-template-columns: repeat(2, 22px); justify-content: center; }
@@ -109,67 +92,48 @@
         .swatch { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
         .swatch:active { transform: scale(0.8); }
 
-        .palette-buttons { display: flex; gap: 4px; justify-content: space-between; margin-top: 2px; }
-        .palette-buttons button { font-size: 11px; padding: 4px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer; }
+        .palette-buttons { display: flex; gap: 4px; justify-content: space-between; width: 100%; margin-top: 2px; }
+        .palette-buttons button { font-size: 11px; padding: 5px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer; }
         .palette-buttons button.active-palette { background: #0a84ff; border-color: #0a84ff; font-weight: bold; }
 
         /* Tools Grid */
-        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; margin-top: 2px; }
-        #toolbar.slim[data-side="left"] .tool-grid, #toolbar.slim[data-side="right"] .tool-grid { grid-template-columns: 1fr; margin-top: 0; }
+        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; width: 100%; }
+        #toolbar.slim .tool-grid { grid-template-columns: 1fr; }
         
-        .tool-btn { padding: 10px 4px; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .tool-btn { padding: 9px 4px; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
         .tool-btn.active { background: #0a84ff; color: white; font-weight: bold; }
         .tool-btn:active { transform: scale(0.95); }
         .tool-icon { font-size: 16px; }
         
-        #toolbar.slim .tool-btn { padding: 0; border-radius: 50%; width: 36px; height: 36px; margin: 0 auto; }
-        #toolbar.slim .tool-icon { font-size: 18px; }
+        #toolbar.slim .tool-btn { height: 36px; border-radius: 8px; }
 
-        /* Thickness Grid */
-        .thickness-section { margin-top: 2px; }
-        .thickness-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 100%; }
-        #toolbar.slim[data-side="left"] .thickness-grid, #toolbar.slim[data-side="right"] .thickness-grid { grid-template-columns: repeat(2, 1fr); gap: 4px;}
+        /* Thickness Grid - Rows of 2 on Full, Stacked on Slim */
+        .thickness-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; width: 100%; }
+        #toolbar.slim .thickness-grid { grid-template-columns: 1fr; gap: 4px; }
         
-        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 28px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 26px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; }
         .thick-btn.active { background: #0a84ff; border-color: #0a84ff; }
         .thick-dot { background: #ffffff; border-radius: 50%; }
-        #toolbar.slim .thick-btn { height: 22px; width: 22px; border-radius: 4px; margin: 0 auto; }
+        #toolbar.slim .thick-btn { height: 24px; border-radius: 6px; }
 
-        /* Zoom Controls (+/- only) */
-        .zoom-controls { display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 4px 8px; border-radius: 8px; margin-top: 2px; }
-        #toolbar.slim .zoom-controls { background: transparent; padding: 0; flex-direction: column; gap: 6px; align-items: center; margin-top: 0; }
-        .zoom-title { font-size: 13px; color: #a1a1a6; font-weight: 500; }
+        /* Zoom Controls (+/- Stacked on Slim) */
+        .zoom-controls { display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: #2c2c2e; padding: 4px 8px; border-radius: 8px; width: 100%; }
+        #toolbar.slim .zoom-controls { background: transparent; padding: 0; flex-direction: column; gap: 4px; align-items: center; }
+        .zoom-title { font-size: 12px; color: #a1a1a6; font-weight: 500; }
+        #toolbar.slim .zoom-controls .icon-btn { width: 52px; height: 32px; border-radius: 6px; }
+
+        /* Sliders */
+        .slider-group { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #a1a1a6; width: 100%; }
+        .slider-group label { display: flex; justify-content: space-between; font-weight: 500; width: 100%; }
+        input[type="range"] { width: 100%; accent-color: #0a84ff; }
 
         /* Action Buttons */
         .btn-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; width: 100%; }
-        .action-btn { padding: 10px 4px; flex-grow: 1; flex-basis: 45%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: bold; }
+        .action-btn { padding: 9px 4px; flex-grow: 1; flex-basis: 45%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: bold; width: 100%; }
         .action-btn:active { transform: scale(0.95); }
+        #toolbar.slim .action-btn { height: 36px; border-radius: 8px; padding: 0; }
 
         .clear-color-btn { background: #ff453a; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        #toolbar.slim .clear-color-btn { width: 36px; height: 36px; border-radius: 50%; padding: 0; flex-shrink: 0; margin: 0 auto; }
-
-        /* COLOR & OPACITY POPOVER */
-        #popover-overlay { position: absolute; top:0; left:0; width:100vw; height:100vh; z-index: 199; display: none; }
-        #popover-overlay.visible { display: block; }
-        
-        #color-popover {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
-            background: rgba(30, 30, 30, 0.98); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            padding: 20px; border-radius: 16px; border: 1px solid #555;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; gap: 15px; width: 240px;
-            z-index: 200; opacity: 0; pointer-events: none; transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #color-popover.visible { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
-        
-        #color-popover h3 { font-size: 16px; color: white; text-align: center; font-weight: 600; margin-bottom: 5px; }
-        .native-color-picker { width: 100%; height: 60px; border: none; border-radius: 12px; cursor: pointer; background: none; }
-        .native-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-        .native-color-picker::-webkit-color-swatch { border: 2px solid #555; border-radius: 12px; }
-        
-        .opacity-slider-group { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #a1a1a6; }
-        .opacity-slider-group label { display: flex; justify-content: space-between; font-weight: 500; }
-        input[type="range"] { width: 100%; accent-color: #0a84ff; }
 
         /* Viewport Canvas */
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
@@ -189,20 +153,6 @@
         <!-- 🛠️ Hidden Wrench Tab -->
         <button id="toggle-ui" data-side="left" onclick="setToolbarState(0)" title="Show Toolbar">🛠️</button>
 
-        <!-- Popover Overlay -->
-        <div id="popover-overlay" onclick="closeColorPopover()"></div>
-        
-        <!-- Custom Color & Opacity Popover -->
-        <div id="color-popover">
-            <h3>Color & Opacity</h3>
-            <input type="color" id="nativeColorPicker" class="native-color-picker" value="#0a84ff">
-            <div class="opacity-slider-group">
-                <label><span>Opacity</span> <span id="valOpac">100%</span></label>
-                <input type="range" id="opacitySlider" min="1" max="100" value="100">
-            </div>
-            <button class="action-btn" style="width: 100%; margin-top: 5px; background: #0a84ff;" onclick="closeColorPopover()">Done</button>
-        </div>
-
         <!-- Dynamic Toolbar -->
         <div id="toolbar" data-side="left">
             
@@ -216,9 +166,10 @@
             <!-- Color Row (Wheel + Swatches) -->
             <div class="toolbar-group">
                 <div class="color-row">
-                    <button id="colorWheelBtn" onclick="openColorPopover()" title="Custom Color & Opacity">
+                    <button id="colorWheelBtn" onclick="document.getElementById('nativeColorPicker').click()" title="Custom Color">
                         <div class="inner-color" id="wheelInner"></div>
                     </button>
+                    <input type="color" id="nativeColorPicker" value="#0a84ff">
                     <div id="paletteSwatches"></div>
                 </div>
                 <div class="palette-buttons hide-on-slim">
@@ -236,7 +187,7 @@
                 <button class="tool-btn" data-tool="eraser"><span class="tool-icon">🧽</span><span class="hide-on-slim label">Eraser</span></button>
             </div>
             
-            <!-- Thickness Grid -->
+            <!-- Thickness Grid (Rows of 2) -->
             <div class="toolbar-group thickness-section">
                 <div class="thickness-grid" id="thicknessGrid">
                     <div class="thick-btn" data-size="1"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
@@ -252,11 +203,17 @@
 
             <!-- Zoom Controls (+ / -) -->
             <div class="toolbar-group zoom-controls">
-                <span class="zoom-title hide-on-slim">Canvas Zoom</span>
-                <div style="display: flex; gap: 8px;">
+                <span class="zoom-title hide-on-slim">Zoom</span>
+                <div style="display: flex; gap: 6px;" id="zoomBtnContainer">
                     <button class="icon-btn" onclick="zoomCanvas(0.15)">➕</button>
                     <button class="icon-btn" onclick="zoomCanvas(-0.15)">➖</button>
                 </div>
+            </div>
+
+            <!-- Opacity Slider -->
+            <div class="toolbar-group slider-group hide-on-slim">
+                <label><span>Opacity</span> <span id="valOpac">100%</span></label>
+                <input type="range" id="opacitySlider" min="1" max="100" value="100">
             </div>
             
             <!-- Import/Save -->
@@ -307,12 +264,12 @@
         
         const toolbarEl = document.getElementById('toolbar');
         const wrenchTab = document.getElementById('toggle-ui');
-        const sides = ['left', 'top', 'right', 'bottom'];
+        const sides = ['left', 'right'];
         let currentSideIndex = 0;
 
         function cycleSide(e) {
             if(e) e.stopPropagation();
-            currentSideIndex = (currentSideIndex + 1) % 4;
+            currentSideIndex = (currentSideIndex + 1) % 2;
             const newSide = sides[currentSideIndex];
             toolbarEl.setAttribute('data-side', newSide);
             wrenchTab.setAttribute('data-side', newSide);
@@ -333,11 +290,16 @@
             toolbarEl.classList.remove('slim', 'hidden');
             wrenchTab.classList.remove('visible');
             
+            const zoomContainer = document.getElementById('zoomBtnContainer');
             if (tbState === 1) {
                 toolbarEl.classList.add('slim');
+                zoomContainer.style.flexDirection = 'column'; // Stack zoom on slim
             } else if (tbState === 2) {
                 toolbarEl.classList.add('hidden');
                 wrenchTab.classList.add('visible');
+                zoomContainer.style.flexDirection = 'row';
+            } else {
+                zoomContainer.style.flexDirection = 'row';
             }
         }
 
@@ -353,16 +315,6 @@
         }
 
         toolbarEl.addEventListener('pointerdown', (e) => e.stopPropagation());
-
-        // --- Popover Logic ---
-        function openColorPopover() {
-            document.getElementById('popover-overlay').classList.add('visible');
-            document.getElementById('color-popover').classList.add('visible');
-        }
-        function closeColorPopover() {
-            document.getElementById('popover-overlay').classList.remove('visible');
-            document.getElementById('color-popover').classList.remove('visible');
-        }
 
         // --- Color Palettes & Pickers ---
         const palettes = {
