@@ -217,17 +217,17 @@
                 </div>
             </div>
             
-            <!-- Stacked Action Buttons (Import, Save, Reset, Clear) -->
+            <!-- Stacked Action Buttons -->
             <div class="toolbar-group btn-col">
                 <input type="file" id="fileUpload" accept="image/jpeg, image/png, application/pdf" style="display: none;">
-                <button class="action-btn import-btn" onclick="document.getElementById('fileUpload').click()">
-                    <span>📁</span><span class="hide-on-slim">Import</span>
+                <button class="action-btn import-btn hide-on-slim" onclick="document.getElementById('fileUpload').click()">
+                    <span>📁</span><span>Import</span>
                 </button>
-                <button class="action-btn save-btn" onclick="saveArtwork()">
-                    <span>💾</span><span class="hide-on-slim">Save</span>
+                <button class="action-btn save-btn hide-on-slim" onclick="saveArtwork()">
+                    <span>💾</span><span>Save</span>
                 </button>
-                <button class="action-btn reset-page-btn" onclick="clearImage()" title="Remove Imported Image">
-                    <span>❌</span><span class="hide-on-slim">Reset Page</span>
+                <button class="action-btn reset-page-btn hide-on-slim" onclick="clearImage()" title="Remove Imported Image">
+                    <span>❌</span><span>Reset Page</span>
                 </button>
                 <button class="action-btn clear-color-btn" onclick="clearCanvas()" title="Clear Colors">
                     <span>🧹</span><span class="hide-on-slim">Clear Color</span>
