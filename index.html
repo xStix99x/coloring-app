@@ -6,7 +6,12 @@
     <!-- These tags enable full-screen mode when saved to the iOS Home Screen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <link rel="manifest" href="manifest.json">
+    
+    <!-- This tells the iPad to use your specific image as the app icon -->
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/xStix99x/coloring-app/refs/heads/main/Pallete.jpeg">
+    
     <title>Coloring Studio</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -177,18 +182,17 @@
         }
         updateRecentColorsUI();
 
-        // --- Crayon Smudgy Noise Generation (More filled in) ---
+        // --- Crayon Smudgy Noise Generation ---
         const noiseCanvas = document.createElement('canvas');
         noiseCanvas.width = 300; noiseCanvas.height = 300;
         const nCtx = noiseCanvas.getContext('2d');
-        nCtx.filter = 'blur(1px)'; // Keeps the smudginess
+        nCtx.filter = 'blur(1px)'; 
         for (let x = 0; x < 300; x += 4) {
             for (let y = 0; y < 300; y += 4) {
-                // Reduced the chance of holes to only 15% to make the stroke much more solid
                 if (Math.random() > 0.85) {
                     nCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     nCtx.beginPath();
-                    nCtx.arc(x, y, Math.random() * 1.5 + 0.5, 0, Math.PI * 2); // Slightly smaller holes
+                    nCtx.arc(x, y, Math.random() * 1.5 + 0.5, 0, Math.PI * 2); 
                     nCtx.fill();
                 }
             }
@@ -361,12 +365,11 @@
             } 
             else if (currentTool === 'brush') {
                 draftCtx.shadowBlur = 0; draftCtx.globalAlpha = currentOpacity * 0.35;
-                // Made the brush thicker and less dispersed so it's less streaky and more cohesive
                 let numStreaks = 4; let spread = currentThickness * 0.3;
                 for (let i = 0; i < numStreaks; i++) {
                     let offset = (i - (numStreaks - 1) / 2) * (spread / numStreaks);
                     draftCtx.save(); draftCtx.translate(offset, offset * 0.3);
-                    draftCtx.lineWidth = Math.max(1, currentThickness * 0.6); // Thicker streaks overlapping
+                    draftCtx.lineWidth = Math.max(1, currentThickness * 0.6); 
                     drawSmoothPath(draftCtx); draftCtx.restore();
                 }
             } 
