@@ -131,7 +131,8 @@
                 <input type="file" id="fileUpload" accept="image/jpeg, image/png, application/pdf" style="display: none;">
                 <button onclick="document.getElementById('fileUpload').click()">📁 Import</button>
                 <button onclick="saveArtwork()">💾 Save</button>
-                <button onclick="clearCanvas()" style="background: #ff453a; flex-basis: 20%;">🗑️</button>
+                <button onclick="clearImage()" title="Remove Image" style="background: #5856d6; flex-basis: 15%;">❌</button>
+                <button onclick="clearCanvas()" title="Clear Colors" style="background: #ff453a; flex-basis: 15%;">🗑️</button>
             </div>
         </div>
     </div>
@@ -164,7 +165,7 @@
         let currentThickness = 5;
         let currentOpacity = 1.0;
 
-        // --- Inactivity Auto-Hide Timer ---
+        // --- Inactivity Auto-Hide Timer (5 Seconds) ---
         let inactivityTimer = null;
         const toolbarEl = document.getElementById('toolbar');
         const toggleBtnEl = document.getElementById('toggle-ui');
@@ -172,7 +173,7 @@
         function resetInactivityTimer() {
             if (toolbarEl.classList.contains('hidden')) return;
             clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => { hideToolbar(); }, 10000);
+            inactivityTimer = setTimeout(() => { hideToolbar(); }, 5000); // 5 seconds
         }
 
         function hideToolbar() {
@@ -256,7 +257,7 @@
             currentOpacity = e.target.value / 100; document.getElementById('valOpac').innerText = e.target.value + '%';
         });
 
-        // --- Undo / Redo System ---
+        // --- Undo / Redo & Clearing Systems ---
         let undoStack = []; let redoStack = [];
 
         function saveState() {
@@ -278,12 +279,20 @@
         function undo() { if (undoStack.length > 0) { redoStack.push(drawCanvas.toDataURL()); restoreState(undoStack.pop()); } }
         function redo() { if (redoStack.length > 0) { undoStack.push(drawCanvas.toDataURL()); restoreState(redoStack.pop()); } }
 
+        // 🗑️ Removes color from the page
         function clearCanvas() {
             saveState();
             drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
         }
 
-        // --- Pan (2 Fingers) and Zoom Sizing ---
+        // ❌ Removes the imported image and goes back to blank canvas
+        function clearImage() {
+            saveState();
+            topCtx.clearRect(0, 0, topCanvas.width, topCanvas.height);
+            resizeWorkspace(1200, 1600);
+        }
+
+        // --- Pan (3 Fingers) and Zoom Sizing ---
         let scale = 1; let panX = 0, panY = 0;
         let activeTouches = new Map();
 
@@ -320,15 +329,15 @@
             return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale };
         }
 
-        // --- Multi-Touch Input Logic (1 Finger Draw, 2 Fingers Pan) ---
+        // --- Multi-Touch Input Logic (1 Finger Draw, 3 Fingers Pan) ---
         let isDrawing = false; let strokePoints = [];
         let activePointerId = null;
 
         viewport.addEventListener('pointerdown', (e) => {
             activeTouches.set(e.pointerId, e);
 
-            // If 2 fingers are down, cancel drawing and switch to panning mode
-            if (activeTouches.size === 2) {
+            // If 3 fingers are down, cancel drawing and switch to panning mode
+            if (activeTouches.size === 3) {
                 if (isDrawing) {
                     isDrawing = false;
                     draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
@@ -338,7 +347,7 @@
                 return;
             }
 
-            // 1 finger down -> Start Drawing / Coloring
+            // 1 or 2 fingers down -> If 1 finger and not currently panning, draw
             if (activeTouches.size === 1) {
                 activePointerId = e.pointerId;
                 saveState();
@@ -361,20 +370,22 @@
                 activeTouches.set(e.pointerId, e);
             }
 
-            // 2 fingers moving -> Pan the workspace
-            if (activeTouches.size === 2) {
+            // 3 fingers moving -> Pan the workspace
+            if (activeTouches.size >= 3) {
                 const touches = Array.from(activeTouches.values());
-                // Calculate average movement of the two fingers
-                const mX = (touches[0].movementX + touches[1].movementX) / 2;
-                const mY = (touches[0].movementY + touches[1].movementY) / 2;
-                panX += mX; 
-                panY += mY;
+                let avgMX = 0, avgMY = 0;
+                touches.forEach(t => {
+                    avgMX += t.movementX;
+                    avgMY += t.movementY;
+                });
+                panX += avgMX / touches.length; 
+                panY += avgMY / touches.length;
                 updateTransform();
                 return;
             }
 
-            // 1 finger moving -> Draw
-            if (isDrawing && e.pointerId === activePointerId) {
+            // 1 finger moving -> Draw (ignored if 2 or 3 fingers are active)
+            if (isDrawing && e.pointerId === activePointerId && activeTouches.size === 1) {
                 strokePoints.push(getCanvasCoords(e));
                 renderDraft();
             }
