@@ -23,71 +23,76 @@
         
         #ui-layer { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 100; }
         
+        /* Auto-Slimming Sidebar Styles */
         #toolbar {
-            position: absolute; top: 20px; left: 20px; 
-            background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            padding: 20px; border-radius: 16px; border: 1px solid #333;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px;
-            pointer-events: auto; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-            width: 240px; opacity: 1; transform: translateX(0);
+            position: absolute; top: 0; bottom: 0; height: 100vh; 
+            background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            padding: 20px 15px; display: flex; flex-direction: column; gap: 15px;
+            pointer-events: auto; transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s ease, right 0.3s ease;
+            width: 260px; overflow-x: hidden; overflow-y: auto; z-index: 100;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
         }
         
-        #toolbar.hidden { 
-            transform: translateX(-150%) scale(0.9); 
-            opacity: 0; 
-            pointer-events: none; 
-        }
+        #toolbar.left-side { left: 0; right: auto; border-right: 1px solid #333; border-radius: 0 16px 16px 0; }
+        #toolbar.right-side { right: 0; left: auto; border-left: 1px solid #333; border-radius: 16px 0 0 16px; }
         
-        #toggle-ui {
-            position: absolute; top: 20px; left: 20px; width: 44px; height: 44px;
-            background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center; font-size: 20px;
-            pointer-events: auto; cursor: pointer; z-index: 99; border: 1px solid #444; color: white;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-            opacity: 0; transform: scale(0.5); pointer-events: none;
-        }
+        /* Slim State */
+        #toolbar.slim { width: 68px; padding: 20px 10px; overflow-y: hidden; }
+        #toolbar.slim .hide-on-slim { display: none !important; }
+        
+        /* Header Buttons */
+        .toolbar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; width: 100%; transition: 0.3s; }
+        #toolbar.slim .toolbar-header { flex-direction: column; gap: 15px; margin-bottom: 25px; }
+        
+        .icon-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; color: white; transition: 0.2s; flex-shrink: 0; }
+        .icon-btn:active { transform: scale(0.9); }
+        #lockBtn.locked { background: #ff3b30; border-color: #ff3b30; }
 
-        #toggle-ui.visible {
-            opacity: 1; transform: scale(1); pointer-events: auto;
-        }
-
-        .tool-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; }
+        /* Tools Grid */
+        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+        #toolbar.slim .tool-grid { grid-template-columns: 1fr; gap: 12px; }
         
-        /* 2x2 Grid Layout for the 4 Tools */
-        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-        .tool-btn { padding: 10px 4px; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; text-align: center; }
+        .tool-btn { padding: 12px 4px; border: none; border-radius: 10px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .tool-btn.active { background: #0a84ff; color: white; font-weight: bold; }
         .tool-btn:active { transform: scale(0.95); }
+        
+        .tool-icon { font-size: 16px; }
+        #toolbar.slim .tool-icon { font-size: 22px; }
+        #toolbar.slim .tool-btn { padding: 12px 0; border-radius: 50%; width: 48px; height: 48px; margin: 0 auto; }
 
-        button { padding: 8px 4px; flex-grow: 1; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px;}
-        button:active { transform: scale(0.95); }
+        /* General Buttons */
+        .btn-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: space-between; margin-top: 5px; }
+        .action-btn { padding: 10px 4px; flex-grow: 1; flex-basis: 45%; border: none; border-radius: 8px; background: #3a3a3c; color: white; cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: bold; }
+        .action-btn:active { transform: scale(0.95); }
         
-        .color-section { display: flex; flex-direction: column; gap: 6px; }
-        .color-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #a1a1a6; }
-        
+        /* Colors */
+        .color-section { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+        .color-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #a1a1a6; width: 100%; }
         .color-inputs { display: flex; gap: 12px; align-items: center; justify-content: center; }
-        input[type="color"] { border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; background: none; flex-shrink: 0; }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
         
-        #paletteSwatches { display: grid; grid-template-columns: repeat(4, 22px); gap: 6px; }
-        .swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
+        input[type="color"] { border: none; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; background: none; flex-shrink: 0; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid #555; border-radius: 50%; box-shadow: inset 0 0 4px rgba(0,0,0,0.5); }
+        
+        #paletteSwatches { display: grid; grid-template-columns: repeat(4, 26px); gap: 8px; }
+        .swatch { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 1px solid #555; transition: transform 0.1s; }
         .swatch:active { transform: scale(0.8); }
 
-        .palette-buttons { display: flex; gap: 4px; justify-content: space-between; }
-        .palette-buttons button { font-size: 11px; padding: 4px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; }
-        .palette-buttons button.active-palette { background: #0a84ff; border-color: #0a84ff; }
+        .palette-buttons { display: flex; gap: 4px; justify-content: space-between; width: 100%; }
+        .palette-buttons button { font-size: 11px; padding: 6px 2px; flex-basis: 32%; background: #2c2c2e; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer; }
+        .palette-buttons button.active-palette { background: #0a84ff; border-color: #0a84ff; font-weight: bold; }
 
-        .thickness-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 2px; }
-        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 6px; height: 32px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        /* Sliders & Thickness Grid */
+        .thickness-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 4px; }
+        .thick-btn { background: #2c2c2e; border: 1px solid #444; border-radius: 8px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .thick-btn.active { background: #0a84ff; border-color: #0a84ff; }
         .thick-dot { background: #ffffff; border-radius: 50%; }
 
-        .slider-group { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #a1a1a6; }
-        .slider-group label { display: flex; justify-content: space-between; }
+        .slider-group { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #a1a1a6; }
+        .slider-group label { display: flex; justify-content: space-between; font-weight: 500; }
         input[type="range"] { width: 100%; accent-color: #0a84ff; }
 
+        /* Viewport Canvas */
         #viewport { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
         #workspace {
             position: absolute; top: 0; left: 0; width: 1200px; height: 1600px;
@@ -102,34 +107,38 @@
 </head>
 <body>
 
-    <button id="toggle-ui" onclick="toggleToolbar()">🛠️</button>
-
     <div id="ui-layer">
-        <div id="toolbar">
+        <!-- Sidebar Toolbar -->
+        <div id="toolbar" class="left-side slim">
+            
+            <div class="toolbar-header">
+                <button onclick="toggleSide(event)" class="icon-btn" title="Move Toolbar">⚙️</button>
+                <button onclick="toggleCanvasLock(event)" class="icon-btn" id="lockBtn" title="Lock Canvas Pan">🔓</button>
+            </div>
+            
             <div class="color-section">
-                <div class="color-header">
+                <div class="color-header hide-on-slim">
                     <span>Color Palette</span>
                 </div>
                 <div class="color-inputs">
                     <input type="color" id="colorPicker" value="#0a84ff">
-                    <div id="paletteSwatches"></div>
+                    <div id="paletteSwatches" class="hide-on-slim"></div>
                 </div>
-                <div class="palette-buttons">
+                <div class="palette-buttons hide-on-slim">
                     <button id="palStandard" onclick="setPalette('standard')">Standard</button>
                     <button id="palPastel" onclick="setPalette('pastel')">Pastel</button>
                     <button id="palNeon" onclick="setPalette('neon')">Neon</button>
                 </div>
             </div>
             
-            <!-- 2x2 Tool Grid -->
             <div class="tool-grid">
-                <button class="tool-btn active" data-tool="marker">🖊️ Marker</button>
-                <button class="tool-btn" data-tool="brush">🖌️ Brush</button>
-                <button class="tool-btn" data-tool="crayon">🖍️ Crayon</button>
-                <button class="tool-btn" data-tool="eraser">🧽 Eraser</button>
+                <button class="tool-btn active" data-tool="marker"><span class="tool-icon">🖊️</span><span class="hide-on-slim label">Marker</span></button>
+                <button class="tool-btn" data-tool="brush"><span class="tool-icon">🖌️</span><span class="hide-on-slim label">Brush</span></button>
+                <button class="tool-btn" data-tool="crayon"><span class="tool-icon">🖍️</span><span class="hide-on-slim label">Crayon</span></button>
+                <button class="tool-btn" data-tool="eraser"><span class="tool-icon">🧽</span><span class="hide-on-slim label">Eraser</span></button>
             </div>
             
-            <div class="slider-group">
+            <div class="slider-group hide-on-slim">
                 <label><span>Thickness</span> <span id="valThick">5</span></label>
                 <div class="thickness-grid" id="thicknessGrid">
                     <div class="thick-btn" data-size="1"><div class="thick-dot" style="width:2px; height:2px;"></div></div>
@@ -144,21 +153,24 @@
                 <input type="range" id="thicknessSlider" min="1" max="100" value="5">
             </div>
 
-            <div class="slider-group">
+            <div class="slider-group hide-on-slim">
                 <label><span>Opacity</span> <span id="valOpac">100%</span></label>
                 <input type="range" id="opacitySlider" min="1" max="100" value="100">
             </div>
-            <div class="slider-group">
-                <label><span>Zoom</span> <span id="valZoom">100%</span></label>
+            <div class="slider-group hide-on-slim">
+                <label><span>Zoom Limit</span> <span id="valZoom">100%</span></label>
                 <input type="range" id="zoomSlider" min="10" max="200" value="100">
             </div>
             
-            <div class="tool-row" style="margin-top: 2px;">
+            <div class="btn-row hide-on-slim">
                 <input type="file" id="fileUpload" accept="image/jpeg, image/png, application/pdf" style="display: none;">
-                <button onclick="document.getElementById('fileUpload').click()">📁 Import</button>
-                <button onclick="saveArtwork()">💾 Save</button>
-                <button onclick="clearImage()" title="Remove Image" style="background: #5856d6; flex-basis: 15%;">❌</button>
-                <button onclick="clearCanvas()" title="Clear Colors" style="background: #ff453a; flex-basis: 30%;">🧹 Clear</button>
+                <button class="action-btn" onclick="document.getElementById('fileUpload').click()">📁 Import</button>
+                <button class="action-btn" onclick="saveArtwork()">💾 Save</button>
+            </div>
+            
+            <div class="btn-row hide-on-slim">
+                <button class="action-btn" onclick="clearImage()" title="Remove Imported Image" style="background: #5856d6;">❌ Reset Page</button>
+                <button class="action-btn" onclick="clearCanvas()" title="Clear Colors" style="background: #ff453a;">🧹 Clear Color</button>
             </div>
         </div>
     </div>
@@ -188,37 +200,56 @@
         let currentThickness = 5;
         let currentOpacity = 1.0;
 
-        // --- Inactivity Auto-Hide Timer ---
+        // --- Toolbar UI Logic (Auto-Slim & Position Settings) ---
         let inactivityTimer = null;
+        let toolbarSide = 'left';
+        let isCanvasLocked = false;
         const toolbarEl = document.getElementById('toolbar');
-        const toggleBtnEl = document.getElementById('toggle-ui');
+
+        function toggleSide(e) {
+            if(e) e.stopPropagation();
+            if (toolbarSide === 'left') {
+                toolbarSide = 'right';
+                toolbarEl.classList.remove('left-side');
+                toolbarEl.classList.add('right-side');
+            } else {
+                toolbarSide = 'left';
+                toolbarEl.classList.remove('right-side');
+                toolbarEl.classList.add('left-side');
+            }
+            resetInactivityTimer();
+        }
+
+        function toggleCanvasLock(e) {
+            if(e) e.stopPropagation();
+            isCanvasLocked = !isCanvasLocked;
+            const btn = document.getElementById('lockBtn');
+            if(isCanvasLocked) {
+                btn.innerText = '🔒';
+                btn.classList.add('locked');
+            } else {
+                btn.innerText = '🔓';
+                btn.classList.remove('locked');
+            }
+            resetInactivityTimer();
+        }
 
         function resetInactivityTimer() {
-            if (toolbarEl.classList.contains('hidden')) return;
+            toolbarEl.classList.remove('slim');
             clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(() => { hideToolbar(); }, 5000);
+            inactivityTimer = setTimeout(() => { 
+                toolbarEl.classList.add('slim'); 
+            }, 6000);
         }
 
-        function hideToolbar() {
-            toolbarEl.classList.add('hidden');
-            toggleBtnEl.classList.add('visible');
-        }
-
-        function toggleToolbar() {
-            if (toolbarEl.classList.contains('hidden')) {
-                toolbarEl.classList.remove('hidden');
-                toggleBtnEl.classList.remove('visible');
+        // Expand toolbar when touched anywhere inside it
+        ['pointerdown', 'pointermove', 'click', 'input'].forEach(evt => {
+            toolbarEl.addEventListener(evt, (e) => {
                 resetInactivityTimer();
-            } else {
-                hideToolbar();
-            }
-        }
-
-        ['pointerdown', 'pointermove', 'wheel', 'change', 'input'].forEach(evt => {
-            toolbarEl.addEventListener(evt, resetInactivityTimer);
-            viewport.addEventListener(evt, resetInactivityTimer);
+                e.stopPropagation(); // Prevents drawing underneath the toolbar
+            });
         });
-        resetInactivityTimer();
+        resetInactivityTimer(); // Start timer on load
 
         // --- Color Palettes ---
         const palettes = {
@@ -350,233 +381,4 @@
             scale = Math.min((rect.width - 40) / w, (rect.height - 40) / h);
             scale = Math.max(0.1, Math.min(scale, 2)); 
             
-            panX = (rect.width - w * scale) / 2; panY = (rect.height - h * scale) / 2;
-            updateTransform();
-        }
-        resizeWorkspace(1200, 1600);
-
-        function getCanvasCoords(e) {
-            const rect = workspace.getBoundingClientRect();
-            return { x: (e.clientX - rect.left) / scale, y: (e.clientY - rect.top) / scale };
-        }
-
-        // --- Throttled Multi-Touch Input Logic ---
-        let isDrawing = false; 
-        let strokePoints = [];
-        let activePointerId = null;
-        let rafId = null;
-
-        viewport.addEventListener('pointerdown', (e) => {
-            activeTouches.set(e.pointerId, e);
-
-            if (activeTouches.size >= 3) {
-                if (isDrawing) {
-                    isDrawing = false;
-                    if (rafId) cancelAnimationFrame(rafId);
-                    draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
-                    strokePoints = [];
-                }
-                activePointerId = null;
-                return;
-            }
-
-            if (activeTouches.size === 1) {
-                activePointerId = e.pointerId;
-                const coords = getCanvasCoords(e);
-                
-                isDrawing = true; 
-                strokePoints = [coords];
-                strokePatternOffset = { x: Math.random() * 300, y: Math.random() * 300 };
-                requestRender();
-            }
-        });
-
-        viewport.addEventListener('pointermove', (e) => {
-            if (activeTouches.has(e.pointerId)) {
-                activeTouches.set(e.pointerId, e);
-            }
-
-            if (activeTouches.size >= 3) {
-                const touches = Array.from(activeTouches.values());
-                let avgMX = 0, avgMY = 0;
-                touches.forEach(t => {
-                    avgMX += t.movementX;
-                    avgMY += t.movementY;
-                });
-                panX += avgMX / touches.length; 
-                panY += avgMY / touches.length;
-                updateTransform();
-                return;
-            }
-
-            if (isDrawing && e.pointerId === activePointerId && activeTouches.size === 1) {
-                strokePoints.push(getCanvasCoords(e));
-                requestRender();
-            }
-        });
-
-        function requestRender() {
-            if (rafId) return; 
-            rafId = requestAnimationFrame(() => {
-                renderDraft();
-                rafId = null;
-            });
-        }
-
-        function endPointer(e) {
-            activeTouches.delete(e.pointerId);
-
-            if (e.pointerId === activePointerId && isDrawing) {
-                isDrawing = false;
-                activePointerId = null;
-                if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-                
-                drawCtx.globalAlpha = 1; 
-                drawCtx.drawImage(draftCanvas, 0, 0);
-                draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
-                strokePoints = [];
-            }
-        }
-
-        viewport.addEventListener('pointerup', endPointer);
-        viewport.addEventListener('pointerout', endPointer);
-        viewport.addEventListener('pointercancel', endPointer);
-
-        // --- Smooth Quadratic Curve Engine ---
-        function renderDraft() {
-            draftCtx.clearRect(0, 0, draftCanvas.width, draftCanvas.height);
-            if (strokePoints.length === 0) return;
-
-            draftCtx.lineCap = 'round'; draftCtx.lineJoin = 'round';
-            draftCtx.strokeStyle = currentColor; draftCtx.globalCompositeOperation = 'source-over';
-
-            if (currentTool === 'eraser') {
-                draftCtx.lineWidth = currentThickness; draftCtx.strokeStyle = '#ffffff';
-                draftCtx.globalAlpha = 1; draftCtx.shadowBlur = 0; drawSmoothPath(draftCtx);
-            } 
-            else if (currentTool === 'marker') {
-                draftCtx.lineWidth = currentThickness; draftCtx.globalAlpha = currentOpacity * 0.7;
-                draftCtx.shadowBlur = Math.max(2, currentThickness * 0.15); draftCtx.shadowColor = currentColor;
-                drawSmoothPath(draftCtx); 
-            } 
-            else if (currentTool === 'brush') {
-                draftCtx.shadowBlur = 0; draftCtx.globalAlpha = currentOpacity * 0.35;
-                let numStreaks = 4; let spread = currentThickness * 0.3;
-                for (let i = 0; i < numStreaks; i++) {
-                    let offset = (i - (numStreaks - 1) / 2) * (spread / numStreaks);
-                    draftCtx.save(); draftCtx.translate(offset, offset * 0.3);
-                    draftCtx.lineWidth = Math.max(1, currentThickness * 0.6); 
-                    drawSmoothPath(draftCtx); draftCtx.restore();
-                }
-            } 
-            else if (currentTool === 'crayon') {
-                draftCtx.globalAlpha = currentOpacity * 0.95;
-                draftCtx.shadowBlur = 3;
-                draftCtx.shadowColor = currentColor;
-                
-                draftCtx.lineWidth = currentThickness;
-                drawSmoothPath(draftCtx);
-                
-                draftCtx.save();
-                let edgeOffset = currentThickness * 0.22;
-                draftCtx.translate(Math.random() * edgeOffset - (edgeOffset/2), Math.random() * edgeOffset - (edgeOffset/2));
-                draftCtx.lineWidth = currentThickness * 0.85; 
-                drawSmoothPath(draftCtx);
-                draftCtx.restore();
-                
-                draftCtx.globalCompositeOperation = 'destination-out';
-                let patternScale = Math.max(0.3, currentThickness / 40);
-                const matrix = new DOMMatrix().translate(strokePatternOffset.x, strokePatternOffset.y).scale(patternScale, patternScale);
-                crayonPattern.setTransform(matrix);
-                draftCtx.fillStyle = crayonPattern;
-                draftCtx.fillRect(0, 0, draftCanvas.width, draftCanvas.height);
-            }
-        }
-
-        function drawSmoothPath(ctx) {
-            ctx.beginPath();
-            if (strokePoints.length < 3) {
-                ctx.moveTo(strokePoints[0].x, strokePoints[0].y); ctx.lineTo(strokePoints[0].x + 0.1, strokePoints[0].y);
-                ctx.stroke(); return;
-            }
-            ctx.moveTo(strokePoints[0].x, strokePoints[0].y);
-            for (let i = 1; i < strokePoints.length - 2; i++) {
-                const xc = (strokePoints[i].x + strokePoints[i + 1].x) / 2;
-                const yc = (strokePoints[i].y + strokePoints[i + 1].y) / 2;
-                ctx.quadraticCurveTo(strokePoints[i].x, strokePoints[i].y, xc, yc);
-            }
-            ctx.quadraticCurveTo(
-                strokePoints[strokePoints.length - 2].x, strokePoints[strokePoints.length - 2].y,
-                strokePoints[strokePoints.length - 1].x, strokePoints[strokePoints.length - 1].y
-            );
-            ctx.stroke();
-        }
-
-        // --- Import & Export ---
-        document.getElementById('fileUpload').addEventListener('change', async (e) => {
-            const file = e.target.files[0]; if (!file) return;
-
-            if (file.type === 'application/pdf') {
-                const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                const page = await pdf.getPage(1); 
-                
-                const baseViewport = page.getViewport({ scale: 1 });
-                let renderScale = 1.5; 
-                if (baseViewport.width * renderScale > 2000 || baseViewport.height * renderScale > 2000) {
-                    renderScale = 2000 / Math.max(baseViewport.width, baseViewport.height);
-                }
-                const viewport = page.getViewport({ scale: renderScale });
-                
-                resizeWorkspace(viewport.width, viewport.height);
-                await page.render({ canvasContext: topCtx, viewport: viewport }).promise; 
-            } else {
-                const img = new Image();
-                img.onload = () => { 
-                    let w = img.width; let h = img.height;
-                    if (w > 2000 || h > 2000) {
-                        let ratio = 2000 / Math.max(w, h);
-                        w = Math.floor(w * ratio); h = Math.floor(h * ratio);
-                    }
-                    resizeWorkspace(w, h); 
-                    topCtx.drawImage(img, 0, 0, w, h); 
-                };
-                img.src = URL.createObjectURL(file);
-            }
-        });
-
-        // iPad-Optimized Save Function
-        function saveArtwork() {
-            const exportCanvas = document.createElement('canvas');
-            exportCanvas.width = drawCanvas.width; 
-            exportCanvas.height = drawCanvas.height; 
-            const exportCtx = exportCanvas.getContext('2d');
-            
-            exportCtx.fillStyle = '#ffffff'; 
-            exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height); 
-            exportCtx.drawImage(drawCanvas, 0, 0);
-            exportCtx.globalCompositeOperation = 'multiply'; 
-            exportCtx.drawImage(topCanvas, 0, 0);
-
-            const dataUrl = exportCanvas.toDataURL('image/png');
-            const win = window.open();
-            if (win) {
-                win.document.write('<iframe src="' + dataUrl + '" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>');
-            } else {
-                const link = document.createElement('a'); 
-                link.download = 'Coloring-Page.png'; 
-                link.href = dataUrl; 
-                link.click();
-            }
-        }
-
-        // --- Register Service Worker for Offline Support ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered!', reg))
-                    .catch(err => console.log('Service Worker registration failed:', err));
-            });
-        }
-    </script>
-</body>
-</html>
+ 
